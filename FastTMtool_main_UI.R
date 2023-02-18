@@ -1087,7 +1087,7 @@ server <- function(input, output, session) {
     }
   )
    session$onSessionEnded(function() {
-     #h2o.shutdown(prompt = F)
+     h2o.shutdown(prompt = F)
      
    })
 }
