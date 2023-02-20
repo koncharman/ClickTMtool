@@ -11,7 +11,7 @@ library(h2o)
 library(wordcloud2)
 library(shinydashboard)
 library(shinyWidgets)
-
+library(nnet)
 
 
 source("functions/text_preprocessing.R")
@@ -273,7 +273,9 @@ ui <- fluidPage(
                        ),
                        #Visualization of topic divergence and prevalence, based on LDAvis
                        visOutput(outputId = "topic_vis_plot_clust"),
+                       
                        #Results of a Generalized Linear Model using the topic memberships of the documents as independent variables and the target variable, selected in the File Tab, as the dependent variable.
+                       selectizeInput(inputId = "multinomial_reg_value_clust",label="Reference Class on Multinomial Logistic Regression",choices = list()),
                        dataTableOutput(outputId = "reg_table_clust")
                        ),
               tabPanel("Topic Modelling",
@@ -308,6 +310,8 @@ ui <- fluidPage(
                        #Visualization of topic divergence and prevalence, based on LDAvis
                        visOutput(outputId = "topic_vis_plot"),
                        #Results of a Generalized Linear Model using the topic memberships of the documents as independent variables and the target variable, selected in the File Tab, as the dependent variable.
+                       selectizeInput(inputId = "multinomial_reg_value_topic",label="Reference Class on Multinomial Logistic Regression",choices = list()),
+                       
                        dataTableOutput(outputId = "reg_table_topic")
                         ),
               tabPanel("Document Vectors",
@@ -448,7 +452,12 @@ server <- function(input, output, session) {
     matrix(dataset_chosen$split2),caption="SPLIT DATA"
   )
   
-  output$variable_table <- renderTable({dataset_chosen$table_label})
+  output$variable_table <- renderTable({
+    df_temp=cbind(dataset_chosen$table_label,dataset_chosen$new_values)
+    df_temp=cbind(names(dataset_chosen$table_label),df_temp)
+    colnames(df_temp)=c("Class","Frequency","New value")
+    rownames(df_temp)=NULL
+    return(df_temp)})
   
   output$variable_plot<-renderPlot({
 
@@ -524,10 +533,35 @@ server <- function(input, output, session) {
   
   
   reg_res_cluster=reactive({
-    mylogit = glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model()$document_memberships[dataset_chosen$split2==T,]),family = gaussian)#(link = "logit")
-    mylogit_mat=summary(mylogit)$coefficients
-    mylogit_mat=round(mylogit_mat,4)
-    return(mylogit_mat)
+    if(dataset_chosen$output_var_type=="nom_choice"){
+      
+      if(length( dataset_chosen$table_label)==2){
+        mylogit_mat=glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model()$document_memberships[dataset_chosen$split2==T,]),family = binomial)
+        mylogit_mat=format(summary(mylogit_mat)$coefficients,scientific=F)
+        r_names=rownames(mylogit_mat); c_names=colnames(mylogit_mat)
+        mylogit_mat=matrix(as.numeric(mylogit_mat),ncol=ncol(mylogit_mat));rownames(mylogit_mat)=r_names;colnames(mylogit_mat)=c_names
+
+        }else{
+        target_class_res=strsplit(x = input$multinomial_reg_value_clust,split = "_")
+        target_class_res=as.numeric(target_class_res[[1]][1])+1
+        print(paste("Target class",target_class_res))
+        df=as.factor(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col])
+        df=relevel(df,ref=target_class_res)
+        df=data.frame(df,as.data.frame(model()$document_memberships[dataset_chosen$split2==T,]))
+        form_df=as.formula(paste(colnames(df)[1],"~",paste(colnames(df)[-1],collapse = " +")))#
+        
+        mylogit_mat=t((coef(multinom(form_df, data= df))))#exp
+      }
+      
+      mylogit_mat=as.data.frame(round(mylogit_mat,4))
+      return(mylogit_mat)
+    }else{
+      mylogit = glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model()$document_memberships[dataset_chosen$split2==T,]),family = gaussian)#(link = "logit")
+      mylogit_mat=summary(mylogit)$coefficients
+      mylogit_mat=round(mylogit_mat,4)
+      return(mylogit_mat)
+    }
+    
   })
   output$reg_table_clust<-renderDataTable(
     
@@ -536,10 +570,38 @@ server <- function(input, output, session) {
     caption=paste("Regression coefficients:",input$model_choice))
   
   reg_res_topic=reactive({
-    mylogit = glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model_topic()$document_memberships[dataset_chosen$split2==T,]),family = gaussian)#(link = "logit")
-    mylogit_mat=summary(mylogit)$coefficients
-    mylogit_mat=round(mylogit_mat,4)
-    return(mylogit_mat)
+    
+    if(dataset_chosen$output_var_type=="nom_choice"){
+      
+      if(length( dataset_chosen$table_label)==2){
+        mylogit_mat=glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model_topic()$document_memberships[dataset_chosen$split2==T,]),family = binomial)
+        mylogit_mat=format(summary(mylogit_mat)$coefficients,scientific=F)
+        r_names=rownames(mylogit_mat); c_names=colnames(mylogit_mat)
+        mylogit_mat=matrix(as.numeric(mylogit_mat),ncol=ncol(mylogit_mat));rownames(mylogit_mat)=r_names;colnames(mylogit_mat)=c_names
+        
+      }else{
+        target_class_res=strsplit(x = input$multinomial_reg_value_topic,split = "_")
+        target_class_res=as.numeric(target_class_res[[1]][1])+1
+        print(paste("Target class",target_class_res))
+        df=as.factor(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col])
+        df=relevel(df,ref=target_class_res)
+        df=data.frame(df,as.data.frame(model_topic()$document_memberships[dataset_chosen$split2==T,]))
+        form_df=as.formula(paste(colnames(df)[1],"~",paste(colnames(df)[-1],collapse = " +")))#
+        
+        mylogit_mat=t((coef(multinom(form_df, data= df))))#exp
+      }
+      
+      mylogit_mat=as.data.frame(round(mylogit_mat,4))
+      return(mylogit_mat)
+    }else{
+      mylogit = glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model_topic()$document_memberships[dataset_chosen$split2==T,]),family = gaussian)#(link = "logit")
+      mylogit_mat=summary(mylogit)$coefficients
+      mylogit_mat=round(mylogit_mat,4)
+      return(mylogit_mat)
+    }
+    
+    
+    
   })
   output$reg_table_topic<-renderDataTable(
     
@@ -671,6 +733,9 @@ server <- function(input, output, session) {
     if(dataset_chosen$output_var_type=="nom_choice"){
       
       dataset_chosen$table_label=table(dataset_chosen$main_matrix[,dataset_chosen$class_col])
+      
+      
+      
       showModal(dataModal_confirm_var())
     }
     if(dataset_chosen$output_var_type=="con_choice"){
@@ -681,20 +746,31 @@ server <- function(input, output, session) {
   })
   
   
-  observeEvent(input$cmp_var_rows, { 
+  observeEvent(input$cmp_var_rows, {
+    dataset_chosen$new_values=c()
     print(dataset_chosen$table_label)
     new_values=list()
     for(i in 1:length(dataset_chosen$table_label)){
       match_values=which(dataset_chosen$main_matrix[,dataset_chosen$class_col]==names(dataset_chosen$table_label)[i])
       new_values[match_values]=input[[paste0("var_value_", i)]]
+      dataset_chosen$new_values[i]=input[[paste0("var_value_", i)]]
     }
-   
+    
     new_values=as.numeric(unlist(new_values))
     print(table(new_values))
     na_values_match=which(is.na(new_values))
     if(length(na_values_match)>0)new_values[na_values_match]=median(new_values,na.rm = T)
     
     dataset_chosen$main_matrix[,dataset_chosen$class_col]=new_values
+    
+    if(length(dataset_chosen$table_label)>2){
+      choices_new=list()
+      choices_new[paste0(names(dataset_chosen$table_label)," (",dataset_chosen$new_values,")")]=paste0((dataset_chosen$new_values),"_multnom_clust")
+      print(paste("new_values",dataset_chosen$new_values))
+      updateSelectizeInput(inputId = "multinomial_reg_value_clust",choices = choices_new)
+      updateSelectizeInput(inputId = "multinomial_reg_value_topic",choices = choices_new)
+      
+    }
     
     removeModal() 
   })
@@ -919,7 +995,15 @@ server <- function(input, output, session) {
   #Random Split option
   observeEvent(input$random_split,{
     set.seed(831)
-    dataset_chosen$split2=sample.split(dataset_chosen$main_matrix[,dataset_chosen$class_col],SplitRatio=0.7)
+    if(dataset_chosen$output_var_type=="nom_choice"){
+      dataset_chosen$split2=sample.split(dataset_chosen$main_matrix[,dataset_chosen$class_col],SplitRatio=0.7)
+      
+    }else{
+      temp_sample=sample(nrow(dataset_chosen$main_matrix),0.7*nrow(dataset_chosen$main_matrix))
+      dataset_chosen$split2=rep(F,nrow(dataset_chosen$main_matrix))
+      dataset_chosen$split2[temp_sample]=T
+    }
+    
   })
   
   #Updating options for the word information passed to the alternative models for building document vectors
