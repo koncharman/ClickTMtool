@@ -539,7 +539,8 @@ server <- function(input, output, session) {
         mylogit_mat=format(summary(mylogit_mat)$coefficients,scientific=F)
         r_names=rownames(mylogit_mat); c_names=colnames(mylogit_mat)
         mylogit_mat=matrix(as.numeric(mylogit_mat),ncol=ncol(mylogit_mat));rownames(mylogit_mat)=r_names;colnames(mylogit_mat)=c_names
-
+        #mylogit_mat[,1]=exp(mylogit_mat[,1]) #exp
+        
         }else{
         target_class_res=strsplit(x = input$multinomial_reg_value_clust,split = "_")
         target_class_res=as.numeric(target_class_res[[1]][1])+1
@@ -549,18 +550,23 @@ server <- function(input, output, session) {
         df=data.frame(df,as.data.frame(model()$document_memberships[dataset_chosen$split2==T,]))
         form_df=as.formula(paste(colnames(df)[1],"~",paste(colnames(df)[-1],collapse = " +")))#
         
-        mylogit_mat=t((coef(multinom(form_df, data= df))))#exp
+        mylogit_mat=t((coef(multinom(form_df, data= df))))
+        #mylogit_mat=exp(mylogit_mat)#exp
       }
       
-      mylogit_mat=as.data.frame(round(mylogit_mat,4))
-      return(mylogit_mat)
+      
+      
     }else{
-      mylogit = glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model()$document_memberships[dataset_chosen$split2==T,]),family = gaussian)#(link = "logit")
-      mylogit_mat=summary(mylogit)$coefficients
-      mylogit_mat=round(mylogit_mat,4)
-      return(mylogit_mat)
+      mylogit_mat=glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model()$document_memberships[dataset_chosen$split2==T,]),family = gaussian)
+      mylogit_mat=format(summary(mylogit_mat)$coefficients,scientific=F)
+      r_names=rownames(mylogit_mat); c_names=colnames(mylogit_mat)
+      mylogit_mat=matrix(as.numeric(mylogit_mat),ncol=ncol(mylogit_mat));rownames(mylogit_mat)=r_names;colnames(mylogit_mat)=c_names
+      #mylogit_mat[,1]=exp(mylogit_mat[,1])
     }
     
+    mylogit_mat=as.data.frame(round(mylogit_mat,4))
+    
+    return(mylogit_mat)
   })
   output$reg_table_clust<-renderDataTable(
     
