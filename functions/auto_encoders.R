@@ -1,4 +1,5 @@
 "auto_encoders"<-function(features,dimensions){
+  set.seed(831)
   library(h2o)
   
   
