@@ -1,4 +1,4 @@
-"fclust_mapping_with_npmi"<-function(word_vectors,min_topics=2,topic_range=20,tSparse_train,center_top_Words=F,nn=5,l=10,spr=1,md=0.01,type="fclust",tcm,umap_metric="cosine",glove_leiden=F,split2,categories_assignement,ii_rev=T,leiden_option_mem=2,no_clust_mem_cond=F,no_umap_dims=2,dim_red_options="no_red",stand_leiden_words_mem=F){
+"fclust_mapping_with_npmi"<-function(word_vectors,min_topics=2,topic_range=20,tSparse_train,center_top_Words=F,l=10,type="fclust",tcm,glove_leiden=F,split2,categories_assignement,ii_rev=T,leiden_option_mem=2,no_clust_mem_cond=F,stand_leiden_words_mem=F){
   
   set.seed(831)
   
@@ -25,36 +25,7 @@
 
   
 
-  if(type!='leiden' || (type=='leiden'&&glove_leiden==T)){
-    if(dim_red_options=="umap_red"){
-    library(uwot)
-    umap_tcm_ii=umap(X = word_vectors,verbose = TRUE,n_neighbors =nn,metric = umap_metric,n_components = no_umap_dims,local_connectivity =1,spread = spr,min_dist = md)# ,n_epochs = 10000 , 5 or 10 neighbors 
-    rownames(umap_tcm_ii)=tSparse_colnames
-    # 
-    }else if(dim_red_options=="pca_red"){
-      library(FactoMineR)
-      umap_tcm_ii=PCA(X =   word_vectors,ncp = no_umap_dims)$svd$U
-      rownames(umap_tcm_ii)=tSparse_colnames
-      
-    }else if(dim_red_options=="svd_red"){
-      umap_tcm_ii=svd(word_vectors,nv = no_umap_dims) ;  umap_tcm_ii= umap_tcm_ii$u%*%umap_tcm_ii$v
-      rownames(umap_tcm_ii)=tSparse_colnames
-      
-    }else if(dim_red_options=="tsne_red"){
-      library(Rtsne)
-      umap_tcm_ii=Rtsne(word_vectors,dims = no_umap_dims)$Y
-      rownames(umap_tcm_ii)=tSparse_colnames
-      
-    }else if(dim_red_options=="factanal_red"){
-      umap_tcm_ii=factanal(word_vectors,factors = no_umap_dims,scores = "Bartlett")$scores
-      rownames(umap_tcm_ii)=tSparse_colnames
-      
-      }else if(dim_red_options=="no_red"){
-      umap_tcm_ii=word_vectors
-      rownames(umap_tcm_ii)=tSparse_colnames
-      
-    }
-  }  
+  
   
 
   if(type=="fclust"){
@@ -65,7 +36,9 @@
     
     
   for(i in min_topics:topic_range){
-    f_clust=FKM(X = umap_tcm_ii,k = i)
+    set.seed(831)
+    
+    f_clust=FKM(X = word_vectors,k = i)
     #
     ldaOut.terms=matrix(ncol = f_clust$k,nrow=l)
     
@@ -109,26 +82,26 @@
   if(ncol(f_clust$Xca)!=2){
     library(FactoMineR)
     
-      umap_tcm_ii=PCA(X =   word_vectors,ncp = 2)$svd$U
-      rownames(umap_tcm_ii)=tSparse_colnames
+      word_vectors=PCA(X =   word_vectors,ncp = 2)$svd$U
+      rownames(word_vectors)=tSparse_colnames
     
   }
   
-  colnames(umap_tcm_ii)=c("x","y")
+  colnames(word_vectors)=c("x","y")
   
   
-  kmeans_plot_d=kmeans(x = umap_tcm_ii[pos,],centers =2)
-  kmeans_plot_d$centers= t(umap_tcm_ii[pos,])%*%f_clust[["U"]][pos,]/colSums(f_clust$U[pos,])
+  kmeans_plot_d=kmeans(x = word_vectors[pos,],centers =2)
+  kmeans_plot_d$centers= t(word_vectors[pos,])%*%f_clust[["U"]][pos,]/colSums(f_clust$U[pos,])
   kmeans_plot_d[["cluster"]]=f_clust$clus[pos,1]
   library(factoextra)
-  ppl=fviz_cluster(kmeans_plot_d,data = umap_tcm_ii[pos,],ellipse.type = "convex"
+  ppl=fviz_cluster(kmeans_plot_d,data = word_vectors[pos,],ellipse.type = "convex"
                    ,main=paste("Fuzzy k-means Clustering Plot NPMI:",max_coh)
   )
   
-  kmeans_plot_d=kmeans(x = umap_tcm_ii,centers =2)
+  kmeans_plot_d=kmeans(x = word_vectors,centers =2)
   kmeans_plot_d[["cluster"]]=f_clust$clus[,1]
-  kmeans_plot_d$centers=t(umap_tcm_ii)%*%f_clust[["U"]]/colSums(f_clust$U)
-  ppl2=fviz_cluster(kmeans_plot_d,data = umap_tcm_ii,ellipse.type = "convex")
+  kmeans_plot_d$centers=t(word_vectors)%*%f_clust[["U"]]/colSums(f_clust$U)
+  ppl2=fviz_cluster(kmeans_plot_d,data = word_vectors,ellipse.type = "convex")
   
  
   
@@ -152,7 +125,9 @@
     coh_list=c()
     
     for(i in min_topics:topic_range){
-      m_clust=Mclust(umap_tcm_ii,G=i,verbose = TRUE) #,control = em_control or not umap
+      set.seed(831)
+      
+      m_clust=Mclust(word_vectors,G=i,verbose = TRUE) #,control = em_control or not umap
       ldaOut.terms=matrix(ncol = m_clust$G,nrow=l)
       
 
@@ -187,14 +162,14 @@
     if(ncol(m_clust_final$data)!=2){
       library(FactoMineR)
       
-      umap_tcm_ii=PCA(X =   word_vectors,ncp = 2)$svd$U
-      rownames(umap_tcm_ii)=tSparse_colnames
+      word_vectors=PCA(X =   word_vectors,ncp = 2)$svd$U
+      rownames(word_vectors)=tSparse_colnames
       
     }else{
-      umap_tcm_ii=m_clust_final$data
+      word_vectors=m_clust_final$data
       
     }
-    colnames(umap_tcm_ii)=c("x","y")
+    colnames(word_vectors)=c("x","y")
     
     
     tSparse_mclust= as.matrix(tSparse_train)%*%m_clust_final$z
@@ -210,7 +185,7 @@
     
     m_clust_temp$z=m_clust_final$z[pos,]
     m_clust_temp$classification=m_clust_final$classification[pos]
-    m_clust_temp[["data"]]=umap_tcm_ii[pos,]
+    m_clust_temp[["data"]]=word_vectors[pos,]
     m_clust_temp[["uncertainty"]]=m_clust_final[["uncertainty"]][pos]
 
     ppl=fviz_mclust(m_clust_temp,"classification"
@@ -221,7 +196,7 @@
     
     m_clust_temp$z=m_clust_final$z
     m_clust_temp$classification=m_clust_final$classification
-    m_clust_temp[["data"]]=umap_tcm_ii
+    m_clust_temp[["data"]]=word_vectors
     m_clust_temp[["uncertainty"]]=m_clust_final[["uncertainty"]]
     
     
@@ -244,7 +219,7 @@
     #Use of word vectors or use coocurences 
     if(glove_leiden==T){
       library(lsa)
-       graph_tokens_rev_ii=as.matrix(cosine(t(umap_tcm_ii)))
+       graph_tokens_rev_ii=as.matrix(cosine(t(word_vectors)))
       graph_tokens_rev_ii[which(graph_tokens_rev_ii<0)]=0
 
     }else{

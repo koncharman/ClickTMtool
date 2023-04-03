@@ -80,51 +80,97 @@
   }else if(type=="ETM"){
     library(topicmodels.etm)
     library(torch)
-
     library(Matrix)
     
-    dtm= as(as.matrix(item_list_text$dtm), "sparseMatrix")
+    dtm= as(as.matrix(item_list_text$dtm), "dgCMatrix")
+    set.seed(831)
+    torch_manual_seed(831)
+    
     model <- ETM(k = no_topics, dim = ncol(word_vectors), embeddings = word_vectors, dropout = 0.5)
     
     optimizer <- optim_adam(params = model$parameters, lr = 0.005, weight_decay = 0.0000012)
-    overview <- model$fit(data = dtm[split2==T,], optimizer, epoch = 10, batch_size = 1000)
+    tryCatch(expr ={
+      overview <- model$fit(data = dtm[split2,], optimizer = optimizer, epoch = iter_var, batch_size = 1000)
+      ldaOut.terms=mapply(function(x)return(x$term), predict(model, type='terms',top_n = no_top_terms))
+      
+      fc=find_coh(ldaOut.terms,item_list_text$tcm,nrow(item_list_text$dtm[split2==T,]))
+      
+      doc_mem=predict(object = model,newdata=dtm,type='topics')
+      
+      rem_bal=1-rowSums(doc_mem)
+      for(i in 1:nrow(doc_mem)){
+        max_pos=which(doc_mem[i,]==max(doc_mem[i,]))
+        doc_mem[i,max_pos]=doc_mem[i,max_pos]+rem_bal[i]
+      } 
+      
+      
+      
+      phi=t(mapply(function(x)return(x$beta[match(colnames(dtm),x$term)]),predict(model, type='terms',top_n = ncol(item_list_text$dtm))))
+      colnames(phi)=colnames(dtm)
+      rownames(phi)=colnames(doc_mem)
+      
+      rem_bal=1-rowSums(phi)
+      for(i in 1:nrow(phi)){
+        max_pos=which(phi[i,]==max(phi[i,]))
+        phi[i,max_pos]=phi[i,max_pos]+rem_bal[i]
+      } 
+      
+      
+      
+      
+      print(summary(rowSums(phi)))
+      
+      topic_vis=createJSON(mds.method = svd_tsne ,phi = phi,theta = doc_mem[split2==T,],doc.length = row_s[split2==T],vocab = colnames(item_list_text$dtm),term.frequency = colSums(item_list_text$dtm[split2==T,]))
+      
+      
+      
+      
+      return(list('phi'=phi,'model'=model,'keyword_table'=ldaOut.terms,'coherence_npmi'=fc,"document_memberships"=doc_mem,'topic_vis'=topic_vis))
+      
+    } ,
+             error<-{
+               overview <- model$fit(data = rbind(dtm[split2,],dtm[split2,]), optimizer = optimizer, epoch = iter_var, batch_size = 1000)
+               
+               ldaOut.terms=mapply(function(x)return(x$term), predict(model, type='terms',top_n = no_top_terms))
+               
+               fc=find_coh(ldaOut.terms,item_list_text$tcm,nrow(item_list_text$dtm[split2==T,]))
+               
+               doc_mem=predict(object = model,newdata=dtm,type='topics')
+               
+               rem_bal=1-rowSums(doc_mem)
+               for(i in 1:nrow(doc_mem)){
+                 max_pos=which(doc_mem[i,]==max(doc_mem[i,]))
+                 doc_mem[i,max_pos]=doc_mem[i,max_pos]+rem_bal[i]
+               } 
+               
+               
+               
+               phi=t(mapply(function(x)return(x$beta[match(colnames(dtm),x$term)]),predict(model, type='terms',top_n = ncol(item_list_text$dtm))))
+               colnames(phi)=colnames(dtm)
+               rownames(phi)=colnames(doc_mem)
+               
+               rem_bal=1-rowSums(phi)
+               for(i in 1:nrow(phi)){
+                 max_pos=which(phi[i,]==max(phi[i,]))
+                 phi[i,max_pos]=phi[i,max_pos]+rem_bal[i]
+               } 
+               
+               
+               
+               
+               print(summary(rowSums(phi)))
+               
+               topic_vis=createJSON(mds.method = svd_tsne ,phi = phi,theta = doc_mem[split2==T,],doc.length = row_s[split2==T],vocab = colnames(item_list_text$dtm),term.frequency = colSums(item_list_text$dtm[split2==T,]))
+               
+               
+               
+               
+               return(list('phi'=phi,'model'=model,'keyword_table'=ldaOut.terms,'coherence_npmi'=fc,"document_memberships"=doc_mem,'topic_vis'=topic_vis))
+               
+               
+               }
+             )
 
-    ldaOut.terms=mapply(function(x)return(x$term), predict(model, type='terms',top_n = no_top_terms))
-    
-    fc=find_coh(ldaOut.terms,item_list_text$tcm,nrow(item_list_text$dtm[split2==T,]))
-    
-    doc_mem=predict(object = model,newdata=dtm,type='topics')
-    
-    rem_bal=1-rowSums(doc_mem)
-    for(i in 1:nrow(doc_mem)){
-      max_pos=which(doc_mem[i,]==max(doc_mem[i,]))
-      doc_mem[i,max_pos]=doc_mem[i,max_pos]+rem_bal[i]
-    } 
-    
-    
-    
-    phi=t(mapply(function(x)return(x$beta[match(colnames(dtm),x$term)]),predict(model, type='terms',top_n = ncol(item_list_text$dtm))))
-    colnames(phi)=colnames(dtm)
-    rownames(phi)=colnames(doc_mem)
-    
-    rem_bal=1-rowSums(phi)
-    for(i in 1:nrow(phi)){
-      max_pos=which(phi[i,]==max(phi[i,]))
-      phi[i,max_pos]=phi[i,max_pos]+rem_bal[i]
-    } 
-              
-    
-    
-    
-    print(summary(rowSums(phi)))
-    
-    topic_vis=createJSON(mds.method = svd_tsne ,phi = phi,theta = doc_mem[split2==T,],doc.length = row_s[split2==T],vocab = colnames(item_list_text$dtm),term.frequency = colSums(item_list_text$dtm[split2==T,]))
-    
-    
-    
-    
-    return(list('phi'=phi,'model'=model,'keyword_table'=ldaOut.terms,'coherence_npmi'=fc,"document_memberships"=doc_mem,'topic_vis'=topic_vis))
-    
   }else if(type=="LSA"){
     
 
