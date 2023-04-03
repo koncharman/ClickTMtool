@@ -13,6 +13,8 @@ library(shinydashboard)
 library(shinyWidgets)
 library(nnet)
 
+set.seed(831)
+
 
 source("functions/text_preprocessing.R")
 source("functions/prepare_glove.R")
@@ -26,7 +28,7 @@ source("functions/Feature_evaluation_methods.R")
 source("functions/auto_encoders.R")
 source("functions/Document_vectors.R")
 source("functions/tensorflow_keras_nn_funs.R")
-
+source("functions/dimensionality_reduction_options.R")
 
 source("functions/Accurancy_2_Vectors_new.R")
 
@@ -43,7 +45,7 @@ word_vectors_list=NULL
 
 ui <- fluidPage(
   
-  setBackgroundColor(color = c("#C8A8D1", "#FFB6B6"),gradient = "linear",direction = c("top", "left")),
+  #setBackgroundColor(color = c("#C8A8D1", "#FFB6B6"),gradient = "linear",direction = c("top", "left")),
   
   titlePanel(title = "Welcome to FastTMtool",windowTitle = "FTMT"),
   #tabsetPanel(type = "tabs",
@@ -152,15 +154,30 @@ ui <- fluidPage(
                            fluidRow(column(width = 6,offset = 0,checkboxInput(inputId = "auto_enc",label="Apply auto encoder")),column(width = 6,offset = 0,numericInput(inputId = "auto_enc_dim",label = "Number of Dimensions",value = 20,min = 2))),
                            
                            
-                           actionButton(inputId = "vector_build",label = "Build vectors"),
+                           #Alternatives of Dimensionality reduction algorithms applied on word representations. Not available when the approach that is based on the Leiden algorithm and the Inclusion Index is selected.
+                           #When the UMAP dimensionality reduction technique is selected, one additional parameter is available.
+                           
+                                        
+                           radioButtons(inputId = "dim_red_options",label = "Dimensionality Reduction Options",choices = list("No Reduction"="no_red","Factor Analysis"="factanal_red","UMAP"="umap_red","TSNE"="tsne_red","PCA"="pca_red","SVD"="svd_red")),
+                           numericInput(inputId = "no_umap_dims",label = "Number of Dimensions",value = 2),                 
+                           conditionalPanel(condition = "input.dim_red_options == 'umap_red'",numericInput(inputId = "nn_umap",label = "UMAP word neighbors",min=2,step=1,value = 5),
+                                            
+                           ),
+                           
+                           
+                           actionButton(inputId = "vector_build",label = "Build word representations"),
                            
                            
                            
                          ),
                          mainPanel(
                            #Output indicating the finalization of word vectors
-                           tags$h2(tags$b("No of different word vectors")),
-                           textOutput(outputId = "no_vec"),
+                           tags$h2(tags$b("Information of word representations")),
+                           
+                           tags$h4(textOutput(outputId = "no_vec")),
+                           
+                           tags$h4(textOutput(outputId = "word_vec_dim")),
+                           
                            br(),
                            
                            #Bar plot of word frequencies
@@ -243,17 +260,12 @@ ui <- fluidPage(
                            #Option to standarize the topic memberships of words produced by the approach that is based on the Leiden algorithm
                            conditionalPanel(condition = "input.model_choice == 'leiden'",checkboxInput(inputId = "stand_leiden_words_mem",label = "Do not standarize the topic memberships of words",value = F)),
                            
-                           #Alternatives of Dimensionality reduction algorithms applied on word vectors. Not available when the approach that is based on the Leiden algorithm and the Inclusion Index is selected.
                            #Selecting minimum and maximum number of clusters to be evaluated. Not available when the approach that is based on the Leiden algorithm is selected.
-                           #When the UMAP dimensionality reduction technique is selected, one additional parameter is available.
-                           conditionalPanel(condition = "input.model_choice != 'leiden' || input.leiden_features!='II_simil'",
-                                            numericInput(inputId = "min_num_top_c",label = "Minimum number of clusters",min=2,step=1,value = 2),
-                                            numericInput(inputId = "max_num_top_c",label = "Maximum number of clusters",min=2,step=1,value = 20),
-                                            numericInput(inputId = "no_umap_dims",label = "Number of Dimensions",value = 2),
-                                            radioButtons(inputId = "dim_red_options",label = "Dimensionality Reduction Options",choices = list("No Reduction"="no_red","Factor Analysis"="factanal_red","UMAP"="umap_red","TSNE"="tsne_red","PCA"="pca_red","SVD"="svd_red")),
-                                            conditionalPanel(condition = "input.dim_red_options == 'umap_red'",numericInput(inputId = "nn_umap",label = "UMAP word neighbors",min=2,step=1,value = 5)),
-                                            
-                                            ),
+                           conditionalPanel(condition = "input.model_choice != 'leiden'",numericInput(inputId = "min_num_top_c",label = "Minimum number of clusters",min=2,step=1,value = 2),
+                                            numericInput(inputId = "max_num_top_c",label = "Maximum number of clusters",min=2,step=1,value = 20)
+                           ),
+                           
+                           
                            #Model build
                            actionButton(inputId = "model_build",label = "Build model"),
                            
@@ -290,10 +302,11 @@ ui <- fluidPage(
                            conditionalPanel(condition = "input.topic_model_choice == 'LDA_m'",
                                             checkboxInput(inputId = 'as_alpha',label = "Asymmetric alpha",value = F),
                                             fluidRow(
-                                              conditionalPanel(condition = "input.as_alpha == false", column(width = 4,offset = 0,numericInput(inputId = 'topic_alpha',label = "Alpha",value=1,min = 0))),
-                                                     column(width = 4,offset = 0,numericInput(inputId = 'topic_beta',label = "Beta",value=1,min = 0)),
-                                                     column(width = 4,offset = 0,numericInput(inputId = 'topic_iter',label = "Iterations",value=10,min = 1,step = 1))
+                                              conditionalPanel(condition = "input.as_alpha == false", column(width = 6,offset = 0,numericInput(inputId = 'topic_alpha',label = "Alpha",value=1,min = 0))),
+                                                     column(width = 6,offset = 0,numericInput(inputId = 'topic_beta',label = "Beta",value=1,min = 0)),
+                                                     
                                               )),
+                           conditionalPanel(condition = "input.topic_model_choice == 'LDA_m' | input.topic_model_choice == 'ETM'",numericInput(inputId = 'topic_iter',label = "Iterations",value=10,min = 1,step = 1)),
                            
                            #Button for model building
                            fluidRow(column(width = 4,offset = 0,actionButton(inputId = "topic_model_build",label = "Build topic model"))),
@@ -442,8 +455,15 @@ server <- function(input, output, session) {
   
   
   output$no_vec<- renderText({
-    paste(nrow(word_vectors_list$words))
+    temp_text=paste("Number of Words:",nrow(word_vectors_list$words))
+    
+    return(temp_text)
   })
+  output$word_vec_dim<- renderText({
+    temp_text=paste("Number of Dimensions:",ncol(word_vectors_list$words))
+    return(temp_text)
+  })
+  
   
   output$main_table<-renderDataTable(dataset_chosen$main_matrix,caption="MAIN DATA")
   
@@ -911,7 +931,7 @@ server <- function(input, output, session) {
   #Building word vectors
   observeEvent(input$vector_build,{
     if(input$vector_choice=="glove_tcm"){
-      word_vectors_list$words=prepare_glove(item_list_text,glove_skipgram_clause = F,ws = 21,split2=dataset_chosen$split2)
+      word_vectors_list$words=prepare_glove(item_list_text,glove_skipgram_clause = F,ws = 21,split2=dataset_chosen$split2,dimensions=input$vector_size)
     }else if(input$vector_choice=="glove_skip"){
       word_vectors_list$words=prepare_glove(item_list_text,glove_skipgram_clause = T,ws = 21,split2=dataset_chosen$split2,dimensions=input$vector_size)
     }else if(input$vector_choice=="tdm_te"){
@@ -922,11 +942,46 @@ server <- function(input, output, session) {
     }else if(input$vector_choice=="glove_tcm_full"){
       word_vectors_list$words=prepare_glove(item_list_text,glove_skipgram_clause = F,ws = 21,split2=dataset_chosen$split2,full_tcm_clause=T,dimensions=input$vector_size)
     }else if(input$vector_choice=="tcm_stand"){
+
       word_vectors_list$words=item_list_text$tcm/diag(item_list_text$tcm)
     }else if(input$vector_choice=="tcm_rev_ii"){
-      word_vectors_list$words=matrix(mapply(function(x,i,j)x/max(item_list_text$tcm[i,i],item_list_text$tcm[j,j]),item_list_text$tcm,row(item_list_text$tcm),col(item_list_text$tcm)),ncol=ncol(item_list_text$tcm))
+      
+      graph_tokens_rev_ii=item_list_text$tcm
+      graph_tokens_rev_ii=graph_tokens_rev_ii/diag(graph_tokens_rev_ii)
+      
+      for(i in 1:(nrow(graph_tokens_rev_ii)-1)){
+        
+        for(j in (i+1):nrow(graph_tokens_rev_ii)){
+        
+          
+          #min or max
+          temp_val=min(graph_tokens_rev_ii[i,j],graph_tokens_rev_ii[j,i])
+          
+          graph_tokens_rev_ii[i,j]=temp_val
+          graph_tokens_rev_ii[j,i]=temp_val
+        }
+      }
+      word_vectors_list$words=graph_tokens_rev_ii
+      
     }else if(input$vector_choice=="tcm_ii"){
-      word_vectors_list$words=matrix(mapply(function(x,i,j)x/min(item_list_text$tcm[i,i],item_list_text$tcm[j,j]),item_list_text$tcm,row(item_list_text$tcm),col(item_list_text$tcm)),ncol=ncol(item_list_text$tcm))
+      graph_tokens_rev_ii=item_list_text$tcm
+      graph_tokens_rev_ii=graph_tokens_rev_ii/diag(graph_tokens_rev_ii)
+      
+      for(i in 1:(nrow(graph_tokens_rev_ii)-1)){
+        
+        for(j in (i+1):nrow(graph_tokens_rev_ii)){
+          
+          
+          #min or max
+          temp_val=min(graph_tokens_rev_ii[i,j],graph_tokens_rev_ii[j,i])
+          
+          graph_tokens_rev_ii[i,j]=temp_val
+          graph_tokens_rev_ii[j,i]=temp_val
+        }
+      }
+      word_vectors_list$words=graph_tokens_rev_ii
+      
+      
     }else if(input$vector_choice=="word2vec_skipgram"){
       h2o.init(nthreads = -1)
       word_vectors_list$words <- h2o.word2vec(training_frame = h2o.tokenize(as.h2o(item_list_text$text[dataset_chosen$split2==T]),split = " "),word_model = "SkipGram",vec_size = input$vector_size,window_size = 5)
@@ -934,6 +989,7 @@ server <- function(input, output, session) {
       word_vectors_list$words <- as.matrix(word_vectors_list$words)
       
       rownames(word_vectors_list$words)=colnames(item_list_text$tcm)
+      
       
       
       }else if(input$vector_choice=="word2vec_cbow"){
@@ -949,7 +1005,11 @@ server <- function(input, output, session) {
     if(input$auto_enc==T){
       h2o.init(nthreads = -1)
       word_vectors_list$words=auto_encoders(features=word_vectors_list$words,dimensions=input$auto_enc_dim)
-    }    
+    }
+    
+    word_vectors_list$words=dimensionality_reduction_options(tSparse_colnames=colnames(item_list_text$dtm),nn = input$nn_umap,umap_metric="cosine",dim_red_options=input$dim_red_options,no_umap_dims=input$no_umap_dims,word_vectors = word_vectors_list$words,)
+    
+    print("word vectors done")
   })
   
   #Feature evaluation
@@ -971,14 +1031,14 @@ server <- function(input, output, session) {
   #topic model from clustering approaches
   model<-eventReactive(input$model_build,{
     if(input$model_choice=="f_clust"){
-      return(fclust_mapping_with_npmi(dim_red_options=input$dim_red_options,no_umap_dims=input$no_umap_dims,word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,nn = input$nn_umap,l=input$num_top_c,type = "fclust",tcm = item_list_text$tcm,umap_metric="cosine",split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
+      return(fclust_mapping_with_npmi(word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,l=input$num_top_c,type = "fclust",tcm = item_list_text$tcm,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
     }else if(input$model_choice=="m_clust"){
-      return(fclust_mapping_with_npmi(dim_red_options=input$dim_red_options,no_umap_dims=input$no_umap_dims,word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,nn = input$nn_umap,l=input$num_top_c,type = "mclust",tcm = item_list_text$tcm,umap_metric="cosine",split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
+      return(fclust_mapping_with_npmi(word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,l=input$num_top_c,type = "mclust",tcm = item_list_text$tcm,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
       
     }else if(input$model_choice=="leiden"){
       ii_cond=ifelse(input$leiden_features=="word_simil",yes=T,no=F)
       ii_or_rev=ifelse(input$ii_or_rev_ii=='rev_ii_choice',yes=T,no=F)
-      return(fclust_mapping_with_npmi(dim_red_options=input$dim_red_options,no_umap_dims=input$no_umap_dims,word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,nn = input$nn_umap,l=input$num_top_c,type = "leiden",tcm = item_list_text$tcm,umap_metric="cosine",glove_leiden=ii_cond,ii_rev=ii_or_rev,stand_leiden_words_mem = input$stand_leiden_words_mem,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
+      return(fclust_mapping_with_npmi(word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,l=input$num_top_c,type = "leiden",tcm = item_list_text$tcm,glove_leiden=ii_cond,ii_rev=ii_or_rev,stand_leiden_words_mem = input$stand_leiden_words_mem,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
       
     }
   })
@@ -999,7 +1059,6 @@ server <- function(input, output, session) {
   
   #Random Split option
   observeEvent(input$random_split,{
-    set.seed(831)
     if(dataset_chosen$output_var_type=="nom_choice"){
       dataset_chosen$split2=sample.split(dataset_chosen$main_matrix[,dataset_chosen$class_col],SplitRatio=0.7)
       
