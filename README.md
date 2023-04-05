@@ -49,6 +49,12 @@ Finally, by leveraging the topic distributions of the documents that are produce
 
 ![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_10.jpg?raw=true)
 
+## **REFERENCES**
+Fleuret, F. (2004). Fast binary feature selection with conditional mutual information. Journal of Machine learning research, 5(9).
+
+Greene, D., & Cunningham, P. (2006, June). Practical solutions to the problem of diagonal dominance in kernel document clustering. In Proceedings of the 23rd international conference on Machine learning (pp. 377-384).
+
+
 # Installation Instructions
 ## **Python installation**
 We propose the first option (python install, pip install and reticulate later from Rstudio).
