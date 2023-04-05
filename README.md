@@ -1,29 +1,29 @@
 ﻿# Quick tour
 In this case study, we used the BBC News dataset (Greene and Cunningham, 2006) that constitutes a benchmark dataset in previous studies for validation purposes on topic classification tasks. This dataset contains a total of 2225 articles (*bbc dataset*), where each article is labeled under one of the following five classes or categories: business, entertainment, politics, sport and tech. This dataset is associated with two main tasks that both match the utilities of *FastTMtool*. The first task is to identify the primary topics by providing coherent and reasonable results while the second one is to build machine learning models to predict the classes of new records. We initially create a train and a test dataset using the random split option included in the *File Tab*. Also, the process of label encoding and the frequency of the labels across the dataset are shown in the following figures.
 
-![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_1.JPG?raw=true)
+![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_1.jpg?raw=true)
 
 
-![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_2.JPG?raw=true)
+![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_2.jpg?raw=true)
 
 
 In the next step, we select different thresholds for the minimum and maximum proportion of documents that a word should occur to be included in the DTM, as the default options led in extracting more than 5000 words. After experimentations, we discovered that the selection of these two thresholds is a decisive step that significantly affects the subsequent text mining approaches as both frequent and infrequent words may lead in several issues. These issues are mostly related to producing non-satisfactory topic coherence evaluations, discovering redundant or lackluster topics as well as extracting overlapping and not distinct topics. As a result, for the following experiments we set the first threshold equal to 0.8% and the second threshold equal to 10%, gathering 2108 words in total to form the <a name="_hlk126142903"></a>DTM (Figure 18). Furthermore, we present the results of the feature evaluation, using the Conditional Mutual Information Maximization (*CMIM*) criterion (Fleuret, 2004), where we identify some very meaningful words that are strongly related to only one of the five topics e.g. film, coach, music, technolog, champion etc. 
 
-![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_3.JPG?raw=true)
+![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_3.jpg?raw=true)
 
 
-![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_4.JPG?raw=true)
+![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_4.jpg?raw=true)
 
 
 In combination to the selection of the two main thresholds (discussed previously), the selection of the appropriate algorithms as well as the investigation of several alternatives and options is necessary. Indicatively, in this case the *FKM* and *GMM* approaches produced topics with low coherence evaluations due to the occurrence and inclusion of too many words in the DTM. Thus, in this case study we present our experiments using the *Leiden* algorithm for network clustering, using the Inclusion Index, as it helps us extract interpretable results with high coherence evaluations and relatively few topics. The main network of the extracted model, some of the most probable words per topics well as the visualization of the topic divergence and prevalence are presented below.
 
-![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_5.JPG?raw=true)
+![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_5.jpg?raw=true)
 
 
-![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_6.JPG?raw=true)
+![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_6.jpg?raw=true)
 
 
-![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_7.JPG?raw=true)
+![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_7.jpg?raw=true)
 
 
 Overall, 36 distinct topics are discovered with a relatively satisfying coherence score of 0.41 and no significant overlaps, indicating that the utilized approach is indeed an acceptable alternative for topic modelling tasks. By briefly observing the main words of the topics included in the network, we distinguish some highly interpretable subclasses that are strongly related to the five main classes e.g. cinema and films, football, tennis, Olympic games, PlayStation, mobile phones, malicious programs, oil gas, music, economy etc. Moreover, without reviewing the initial texts of the dataset, we successfully distribute the extracted topics into the five main classes based on our inspections of the most probable words and the main network.
@@ -43,11 +43,11 @@ Overall, 36 distinct topics are discovered with a relatively satisfying coherenc
 
 As the main classes of this case study are totally independent, the estimations of the GLM, Multinomial Logistic Regression in this case, hould be thoroughly investigated in order to identify the most relevant topics of each class. Indicatively, we observe the potential change of the log odds in a unit increase of cluster memberships, when the reference class is *tech*. Thus, we can observe that the log odds of an observation belonging to another class, apart from *tech*, are decreased when the memberships of the first four clusters are increased.  We previously distinguished that the first four clusters are associated to this class, meaning that the extracted coefficients from the Multinomial Logistic Regression confirm the information provided in Table 5.
 
-![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_9.JPG?raw=true)
+![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_9.jpg?raw=true)
 
 Finally, by leveraging the topic distributions of the documents that are produced from the previous analysis, we build classification models to predict the classes of the test dataset. The evaluation of the trained models is presented below, where we should mention that the evaluations of precision, recall and F1 score are averaged across the five labels since the classification task is not binary. By examining the extracted results, we can easily infer that the classification models present high values in all evaluation metrics as they correctly predict the majority of the observations included in the test dataset. Consequently, we conclude that the extracted topics from the *Leiden* algorithm contain substantial information as they capture the semantics of the texts effectively both in terms of topic coherence and text classification. 
 
-![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_10.JPG?raw=true)
+![bbc case study 10](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_10.jpg?raw=true)
 
 # Installation Instructions
 ## **Python installation**
