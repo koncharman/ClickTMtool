@@ -1,7 +1,7 @@
 "fclust_mapping_with_npmi"<-function(word_vectors,min_topics=2,topic_range=20,tSparse_train,center_top_Words=F,l=10,type="fclust",tcm,glove_leiden=F,split2,categories_assignement,ii_rev=T,leiden_option_mem=2,no_clust_mem_cond=F,stand_leiden_words_mem=F){
   
   set.seed(831)
-  
+  library(philentropy)
   
   library(LDAvis)
   library(servr)
@@ -32,10 +32,15 @@
   
   library(fclust)
   library(factoextra)
-    coh_list=c()
+  library(ggplot2)
+  library(ggrepel)
     
+    coh_list=c()
+    div_list=c()
+    div_list_all=c()
     
   for(i in min_topics:topic_range){
+    gc()
     set.seed(831)
     
     f_clust=FKM(X = word_vectors,k = i)
@@ -57,13 +62,26 @@
     fc=find_coh(ldaOut.terms,tcm,rows_train)
     coh_list[i-1]=fc
     
-    print(paste(i,fc))
+    td_temp=length(unique(as.vector(ldaOut.terms)))/(l*i)
+    div_list[i-1]=td_temp
+    
+    
+    td_all_temp=t(f_clust$U*col_sums)
+    td_all_temp=td_all_temp/rowSums(td_all_temp)
+    td_all_temp=mean(as.vector(JSD(td_all_temp)))
+    div_list_all[i-1]=td_all_temp
+    
+    print(paste(i,fc,td_temp,td_all_temp))
     
     if(i ==min_topics){
+      td_all=td_all_temp
+      td=td_temp
       max_coh=fc
       f_clust_final=f_clust
       ldaOut.terms_final=ldaOut.terms
     }else if(fc>max_coh){
+      td_all=td_all_temp
+      td=td_temp
       f_clust_final=f_clust
       max_coh=fc
       ldaOut.terms_final=ldaOut.terms
@@ -74,37 +92,53 @@
   tSparse_fclust= as.matrix(tSparse_train)%*%f_clust$U
   tSparse_fclust=tSparse_fclust/as.numeric(row_s)
   
-  ldaOut.terms=ldaOut.terms_final
+  
+  
+  temp_t=colSums(tSparse_fclust[split2,]*row_s[split2])
+  cs_order_mem=order(temp_t,decreasing = T)
+  ldaOut.terms=ldaOut.terms_final[,cs_order_mem]
+  tSparse_fclust=tSparse_fclust[,cs_order_mem]
+  f_clust$U=f_clust$U[,cs_order_mem]
+  match_order=match(c(1:ncol(f_clust$U)),cs_order_mem)
+  f_clust$clus[,1]=match_order[f_clust$clus[,1]]
+  
   
   
   pos=unique(match(ldaOut.terms,rownames(f_clust$Xca)))
   
   if(ncol(f_clust$Xca)!=2){
-    library(FactoMineR)
+    library(uwot)
     
-      word_vectors=PCA(X =   word_vectors,ncp = 2)$svd$U
-      rownames(word_vectors)=tSparse_colnames
+      word_vectors=umap(X =   word_vectors,n_neighbors = 5,n_components = 2,metric =  "cosine",verbose = T)
+      
     
   }
   
   colnames(word_vectors)=c("x","y")
   
+  library(concaveman)
+  library(ggforce)
   
-  kmeans_plot_d=kmeans(x = word_vectors[pos,],centers =2)
-  kmeans_plot_d$centers= t(word_vectors[pos,])%*%f_clust[["U"]][pos,]/colSums(f_clust$U[pos,])
-  kmeans_plot_d[["cluster"]]=f_clust$clus[pos,1]
-  library(factoextra)
-  ppl=fviz_cluster(kmeans_plot_d,data = word_vectors[pos,],ellipse.type = "convex"
-                   ,main=paste("Fuzzy k-means Clustering Plot NPMI:",max_coh)
-  )
+  library(ggrepel)
+  word_vectors=data.frame("x"=word_vectors[,1],"y"=word_vectors[,2])
+  word_vectors$Cluster=as.factor(f_clust$clus[,1])
+  colnames(word_vectors)=c("x","y","Cluster")
+  rownames(word_vectors)=tSparse_colnames
   
-  kmeans_plot_d=kmeans(x = word_vectors,centers =2)
-  kmeans_plot_d[["cluster"]]=f_clust$clus[,1]
-  kmeans_plot_d$centers=t(word_vectors)%*%f_clust[["U"]]/colSums(f_clust$U)
-  ppl2=fviz_cluster(kmeans_plot_d,data = word_vectors,ellipse.type = "convex")
+  ppl2=ggplot( data = as.data.frame(word_vectors),mapping = aes(x, y,colour = Cluster,label = rownames(word_vectors))) +
+    geom_mark_hull(aes(fill = Cluster,label=as.factor(Cluster)),concavity = 5) +
+    #geom_text_repel(max.overlaps = 50)+
+    labs(colour="Cluster",x="x",y="y")+
+    ggtitle("Cluster Plot")
   
- 
   
+  ppl=ggplot( data = as.data.frame(word_vectors[pos,]),mapping = aes(x, y,colour = Cluster,label = rownames(word_vectors[pos,]))) +
+    geom_mark_hull(aes(fill = Cluster,label=as.factor(Cluster)),concavity = 5) +
+    geom_text_repel(max.overlaps = 50)+
+    labs(colour="Cluster",x="x",y="y")+
+    ggtitle(paste("Fuzzy k-means Clustering Plot NPMI:",max_coh,"Topic Divergence (Top terms):",td,"Topic Divergence (All Terms):",td_all))+
+    xlim(c(min(word_vectors[pos,1])-1,max(word_vectors[pos,1])+1))+
+    ylim(c(min(word_vectors[pos,2])-1,max(word_vectors[pos,2])+1))
   
  
   
@@ -112,19 +146,28 @@
   phi=t(f_clust$U*col_sums)
   phi=phi/rowSums(phi)
   
+  
+  
+  
   topic_vis=createJSON(mds.method = svd_tsne,phi = phi,theta = tSparse_fclust[split2==T,],doc.length = row_s[split2==T],vocab = colnames(tSparse_train),term.frequency = col_s_train)
   
   
-  return(list("phi"=phi,"f_clust"=f_clust,"short_visualization"=ppl,"full_visualization"=ppl2,"document_memberships"=tSparse_fclust,"coherence_npmi"=coh_list,"top_terms"=ldaOut.terms,'topic_vis'=topic_vis))
+  
+  return(list("phi"=phi,"f_clust"=f_clust,"short_visualization"=ppl,"full_visualization"=ppl2,"document_memberships"=tSparse_fclust,"coherence_npmi"=coh_list,'max_coh'=max_coh,"top_terms"=ldaOut.terms,'topic_vis'=topic_vis,"topic_divergence"=td,"topic_divergence_list"=div_list,"topic_divergence_all"=td_all,"topic_divergence_all_list"=div_list_all))
   
   
   }else if(type=="mclust"){
     library(mclust) 
     library(factoextra)
+    library(ggplot2)
+    library(ggrepel)
     
     coh_list=c()
+    div_list=c()
+    div_list_all=c()
     
     for(i in min_topics:topic_range){
+      gc()
       set.seed(831)
       
       m_clust=Mclust(word_vectors,G=i,verbose = TRUE) #,control = em_control or not umap
@@ -145,13 +188,29 @@
       
       fc=find_coh(ldaOut.terms,tcm,rows_train)
       coh_list[i-1]=fc
-      print(paste(i,fc))
+      
+      td_temp=length(unique(as.vector(ldaOut.terms)))/(l*i)
+      div_list[i-1]=td_temp
+     
+      
+      td_all_temp=t(m_clust$z*col_sums)
+      td_all_temp=td_all_temp/rowSums(td_all_temp)
+      td_all_temp=mean(as.vector(JSD(td_all_temp)))
+      div_list_all[i-1]=td_all_temp
+      
+      print(paste(i,fc,td_temp,td_all_temp))
       
       if(i ==min_topics){
+        td_all=td_all_temp
+        td=td_temp
+        
         max_coh=fc
         m_clust_final=m_clust
         ldaOut.terms_final=ldaOut.terms
       }else if(fc>max_coh){
+        td_all=td_all_temp
+        td=td_temp
+        
         m_clust_final=m_clust
         max_coh=fc
         ldaOut.terms_final=ldaOut.terms
@@ -159,10 +218,26 @@
       
     }
     
+    tSparse_mclust= as.matrix(tSparse_train)%*%m_clust_final$z
+    tSparse_mclust=tSparse_mclust/as.numeric(row_s)
+    
+    
+    temp_t=colSums(tSparse_mclust[split2,]*row_s[split2])
+    cs_order_mem=order(temp_t,decreasing = T)
+    ldaOut.terms=ldaOut.terms_final[,cs_order_mem]
+    tSparse_mclust=tSparse_mclust[,cs_order_mem]
+    m_clust_final$z=m_clust_final$z[,cs_order_mem]
+    match_order=match(c(1:ncol(m_clust_final$z)),cs_order_mem)
+    m_clust_final$classification=match_order[m_clust_final$classification]
+    
+    
+    
+    
+    
     if(ncol(m_clust_final$data)!=2){
-      library(FactoMineR)
+      library(uwot)
       
-      word_vectors=PCA(X =   word_vectors,ncp = 2)$svd$U
+      word_vectors=umap(X =   word_vectors,n_neighbors = 5,n_components = 2,metric =  "cosine",verbose = T)
       rownames(word_vectors)=tSparse_colnames
       
     }else{
@@ -172,37 +247,37 @@
     colnames(word_vectors)=c("x","y")
     
     
-    tSparse_mclust= as.matrix(tSparse_train)%*%m_clust_final$z
-    tSparse_mclust=tSparse_mclust/as.numeric(row_s)
-    
-    ldaOut.terms=ldaOut.terms_final
-    
-    
-    
     pos=unique(match(ldaOut.terms,rownames(m_clust_final$z)))
     
-    m_clust_temp=m_clust_final
     
-    m_clust_temp$z=m_clust_final$z[pos,]
-    m_clust_temp$classification=m_clust_final$classification[pos]
-    m_clust_temp[["data"]]=word_vectors[pos,]
-    m_clust_temp[["uncertainty"]]=m_clust_final[["uncertainty"]][pos]
-
-    ppl=fviz_mclust(m_clust_temp,"classification"
-                    ,main=paste("Gaussian Mixture Models Clustering Plot NPMI:",max_coh)
-                    )
+    library(concaveman)
+  library(ggforce)
+  
+  library(ggrepel)
     
-    m_clust_temp=m_clust_final
+    word_vectors=data.frame("x"=word_vectors[,1],"y"=word_vectors[,2])
+    word_vectors$Cluster=as.factor(m_clust_final$classification)
+    colnames(word_vectors)=c("x","y","Cluster")
+    rownames(word_vectors)=tSparse_colnames
     
-    m_clust_temp$z=m_clust_final$z
-    m_clust_temp$classification=m_clust_final$classification
-    m_clust_temp[["data"]]=word_vectors
-    m_clust_temp[["uncertainty"]]=m_clust_final[["uncertainty"]]
+    ppl2=ggplot( data = as.data.frame(word_vectors),mapping = aes(x, y,colour = Cluster,label = rownames(word_vectors))) +
+      geom_mark_ellipse(aes(fill = Cluster,label=as.factor(Cluster))) +
+      #geom_text_repel(max.overlaps = 50)+
+      labs(colour="Cluster",x="x",y="y")+
+      ggtitle("Cluster Plot")
     
     
-    ppl2=fviz_mclust(m_clust_temp,"classification")
+    ppl=ggplot( data = as.data.frame(word_vectors[pos,]),mapping = aes(x, y,colour = Cluster,label = rownames(word_vectors[pos,]))) +
+      geom_mark_ellipse(aes(fill = Cluster,label=as.factor(Cluster))) +
+      geom_text_repel(max.overlaps = 100)+
+      labs(colour="Cluster",x="x",y="y")+
+      ggtitle(paste("Gaussian Mixture Models Clustering Plot NPMI:",max_coh,"Topic Divergence (Top terms):",td,"Topic Divergence (All terms):",td_all))+
+      xlim(c(min(word_vectors[pos,1])-1,max(word_vectors[pos,1])+1))+
+      ylim(c(min(word_vectors[pos,2])-1,max(word_vectors[pos,2])+1))
     
-   
+    
+    
+  
     
     
     phi=t(m_clust_final$z*col_sums)
@@ -211,7 +286,7 @@
     topic_vis=createJSON(mds.method = svd_tsne,phi = phi,theta = tSparse_mclust[split2==T,],doc.length = row_s[split2==T],vocab = colnames(tSparse_train),term.frequency = col_s_train)
     
     
-    return(list("phi"=phi,"m_clust"=m_clust_final,"short_visualization"=ppl,"full_visualization"=ppl2,"document_memberships"=tSparse_mclust,"coherence_npmi"=coh_list,'max_coh'=max_coh,"top_terms"=ldaOut.terms,'topic_vis'=topic_vis))
+    return(list("phi"=phi,"m_clust"=m_clust_final,"short_visualization"=ppl,"full_visualization"=ppl2,"document_memberships"=tSparse_mclust,"coherence_npmi"=coh_list,'max_coh'=max_coh,"top_terms"=ldaOut.terms,'topic_vis'=topic_vis,"topic_divergence"=td,"topic_divergence_list"=div_list,"topic_divergence_all"=td_all,"topic_divergence_all_list"=div_list_all))
     
   }else if(type=="leiden"){
     
@@ -244,7 +319,8 @@
     rp_values=c(0.0001,0.0003,0.0005,0.0008,0.001,0.003,0.005,0.01,0.02,0.03,0.05,0.08,0.1,0.2,0.3,0.6,0.8,1,2,3,5,10,20,30,50)
     
     coh_list=list()
-    
+    div_list=list()
+    div_list_all=list()
     
     for(k_ii in 1:length(ii_thres)){
     ##II - threshold link
@@ -273,6 +349,7 @@
     
     
     for(i in 1:length(rp_values)){
+      gc()
       
       leiden_clust=cluster_leiden(graph = g,resolution_parameter=rp_values[i],objective_function = "modularity",n_iterations = 10)#objective_function = "modularity" or "CPM"
       
@@ -357,9 +434,21 @@
       
       fc=find_coh(ldaOut.terms,tcm,rows_train)
       coh_list[[paste("ii_thres:",ii_thres[k_ii],"Res_parameter:",rp_values[i])]]=fc
-      print(paste("threshold:",ii_thres[k_ii],"rp:",rp_values[i],"no clusters:",leiden_clust$nb_clusters,"coherence:",fc))
+      
+      td_temp=length(unique(as.vector(ldaOut.terms)))/(l*ncol(rel_com))
+      div_list[[paste("ii_thres:",ii_thres[k_ii],"Res_parameter:",rp_values[i])]]=td_temp
+      
+      td_all_temp=t(rel_com*col_sums)
+      td_all_temp=td_all_temp/rowSums(td_all_temp)
+      td_all_temp=mean(as.vector(JSD(td_all_temp)))
+      div_list_all[[paste("ii_thres:",ii_thres[k_ii],"Res_parameter:",rp_values[i])]]=td_all_temp
+      
+      print(paste("threshold:",ii_thres[k_ii],"rp:",rp_values[i],"no clusters:",leiden_clust$nb_clusters,"coherence:",fc,"divergence",td_temp,"divergence all",td_all_temp))
       
       if(i==1 && k_ii==1){
+        td_all=td_all_temp
+        td=td_temp
+        
         max_coh=fc
         l_clust_final=leiden_clust
         ldaOut.terms_final=ldaOut.terms
@@ -370,6 +459,8 @@
         g_final=g
         
       }else if(fc>max_coh){
+        td=td_temp
+        
         l_clust_final=leiden_clust
         max_coh=fc
         ldaOut.terms_final=ldaOut.terms
@@ -408,6 +499,18 @@
       temp_s=1/ncol(tSparse_lclust)
       tSparse_lclust[zero_clust,]=temp_s
     }
+    
+    
+    temp_t=colSums(tSparse_lclust[split2,]*row_s[split2])
+    cs_order_mem=order(temp_t,decreasing = T)
+    ldaOut.terms_final=ldaOut.terms_final[,cs_order_mem]
+    tSparse_lclust=tSparse_lclust[,cs_order_mem]
+    rel_com_final=rel_com_final[,cs_order_mem]
+    match_order=match(c(1:ncol(rel_com_final)),cs_order_mem)
+    token_memberships_all_final[-disc_nodes_pos]=match_order[token_memberships_all_final[-disc_nodes_pos]]
+    
+    
+    
     
     
     coords <- layout.fruchterman.reingold(g_final)*0.5
@@ -449,7 +552,7 @@
     
     library(ggplot2)
     ppl= ggplot()+
-    ggtitle(paste("II threshold:",ii_thres_final,"Resolution Parameter:",rp_final,"No clusters:",l_clust_final$nb_clusters,"NPMI coherence:",max_coh))+
+    ggtitle(paste("II threshold:",ii_thres_final,"Resolution Parameter:",rp_final,"No clusters:",l_clust_final$nb_clusters,"NPMI coherence:",max_coh,"Topic Divergence (Top terms):",td,"Topic Divergence (All terms):",td_all))+
     geom_segment(data=g_matrix,aes(x=from.x,xend = to.x, y=from.y,yend = to.y),colour="black") + #size="weight"
     geom_point(data=all_df,aes(x=V1,y=V2),size=5,colour=(palete_col[as.numeric(all_df$cluster)+1])) +
     geom_text(data=all_df,aes(x=as.numeric(V1),y=as.numeric(V2),label=paste(all_df$cluster,all_df$label)))
@@ -470,7 +573,7 @@
     
     
       
-    return(list("phi"=phi,'leiden_clust'=l_clust_final,"document_memberships"=tSparse_lclust,"keyword_memberships"=rel_com_final,"short_visualization"=ppl,"coherence_npmi"=coh_list,"top_terms"=ldaOut.terms_final,"topic_vis"=topic_vis))
+    return(list("phi"=phi,'leiden_clust'=l_clust_final,"document_memberships"=tSparse_lclust,"keyword_memberships"=rel_com_final,"short_visualization"=ppl,"coherence_npmi"=coh_list,'max_coh'=max_coh,"top_terms"=ldaOut.terms_final,"topic_vis"=topic_vis,"topic_divergence"=td,"topic_divergence_list"=div_list,"topic_divergence_all"=td_all,"topic_divergence_all_list"=div_list_all))
     
   }
 }

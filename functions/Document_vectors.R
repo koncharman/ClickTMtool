@@ -7,7 +7,7 @@
      library(ruimtehol)
       model <- embed_tagspace(x = item_list_text$text[split2],
                               y = categories_assignement[split2],
-dim = no_dims, minCount = 1,minCountLabel = 1 ,ngrams=2 ,adagrad=T, lr=0.05 ,loss='hinge' ,margin=0.05,negSearchLimit=50,similarity="cosine", ws=5,epoch=10,bucket=10000000L)
+dim = no_dims, minCount = 1,minCountLabel = 1 ,ngrams=2 ,adagrad=T, lr=0.05 ,loss='hinge' ,margin=0.05,negSearchLimit=50,similarity="cosine", ws=5,epoch=10,bucket=10000000L,early_stopping = 1)
       return(predict(object = model,newdata = item_list_text$text,type='embedding'))
     }else if (type=="ft_model"){
       library(fastTextR)
