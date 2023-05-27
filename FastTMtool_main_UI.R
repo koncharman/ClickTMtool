@@ -46,6 +46,7 @@ word_vectors_list=NULL
 ui <- fluidPage(
   
   #setBackgroundColor(color = c("#C8A8D1", "#FFB6B6"),gradient = "linear",direction = c("top", "left")),
+ 
   
   titlePanel(title = "Welcome to FastTMtool",windowTitle = "FTMT"),
   #tabsetPanel(type = "tabs",
@@ -54,6 +55,7 @@ ui <- fluidPage(
   #dashboardSidebar()
   navbarPage("",
               tabPanel("File",
+                       
                        sidebarLayout( 
                          sidebarPanel(
                            
@@ -99,6 +101,8 @@ ui <- fluidPage(
                            
                            ),
                        mainPanel(
+                         
+                         
                          #Visualization of the imported data
                          dataTableOutput(outputId = "main_table"),
                          
@@ -271,17 +275,21 @@ ui <- fluidPage(
                            
                          ),
                          mainPanel(
-                           #Full view or short view (top terms) of the extracted clusters. Short view is not availablewhen the approach that is based on the Leiden algorithm is selected.  
-                           conditionalPanel("input.model_choice != 'leiden'",selectizeInput(inputId = "main_plot_topic_view",label="Cluster view",choices=list("Top words View"="top_words_view","Full View"="full_view"))),
-                           br(),
-                           #Main visualization of words and clusters
-                           plotOutput(outputId = "main_plot_topic"),
+                           
+                           
                            #Top terms per cluster
                            dataTableOutput(outputId = "main_clust_keyword_table")
                            
                            
                          )
                        ),
+                       
+                       #Full view or short view (top terms) of the extracted clusters. Short view is not availablewhen the approach that is based on the Leiden algorithm is selected.  
+                       conditionalPanel("input.model_choice != 'leiden'",selectizeInput(inputId = "main_plot_topic_view",label="Cluster view",choices=list("Top words View"="top_words_view","Full View"="full_view"))),
+                       br(),
+                       #Main visualization of words and clusters
+                       plotOutput(outputId = "main_plot_topic"),
+                       
                        #Visualization of topic divergence and prevalence, based on LDAvis
                        visOutput(outputId = "topic_vis_plot_clust"),
                        
@@ -295,7 +303,7 @@ ui <- fluidPage(
                            #Build topic model
                            tags$h2(tags$strong("Topic Modelling Options")),
                            #Available alternatives of topic modelling algorithms
-                           fluidRow(column(width = 6,offset = 0,selectizeInput(inputId = "topic_model_choice",label="Select topic model",choices = list("LDA (VEM)"="LDA_vem","LDA (Collapsed Gibbs Sampling)"="LDA_m","CTM (VEM)"="CTM_vem","STM"='STM_vem',"ETM"='ETM',"LSA"="LSA"))),column(width = 6,offset = 0,numericInput(inputId = "no_topics",label = "Number of topics",value = 10,min = 2))),
+                           fluidRow(column(width = 6,offset = 0,selectizeInput(inputId = "topic_model_choice",label="Select topic model",choices = list("LDA (VEM)"="LDA_vem","LDA (Collapsed Gibbs Sampling)"="LDA_m","NMF"="NMF","CTM (VEM)"="CTM_vem","STM"='STM_vem',"ETM"='ETM',"LSA"="LSA"))),column(width = 6,offset = 0,numericInput(inputId = "no_topics",label = "Number of topics",value = 10,min = 2))),
                            #Number of top terms used for the evaluation and selection of the final model based on topic coherence 
                            numericInput(inputId = "num_top_t",label = "Number of top terms",value = 10,min = 2,max = 50,step = 1),
                            #Alpha and Beta, prior parameters of LDA, assessment when the LDA with Collapsed Gibbs Sampling topic modelling algorithm is selected
@@ -516,7 +524,7 @@ server <- function(input, output, session) {
     
     DF=data.frame("Words"=names(col_sums_all[order_csa[1:input$word_bar_plot_no_items]]),"Occurences"=col_sums_all[order_csa[1:input$word_bar_plot_no_items]])
     p=ggplot(DF, aes(Words, Occurences)) +               
-      
+      theme(text = element_text(size = 20))+
       theme(axis.text.x = element_text(angle = 90))+
       geom_bar(stat = "identity", fill = "lightblue", color = "blue")+
       scale_x_discrete(limits = names(col_sums_all[order_csa[1:input$word_bar_plot_no_items]]))+
@@ -637,14 +645,15 @@ server <- function(input, output, session) {
   output$main_plot_topic <- renderPlot({
     if(input$model_choice == 'leiden') return(plot(model()$short_visualization))
     if(input$main_plot_topic_view=="full_view"){
-      plot(model()$full_visualization)
+      #plot(model()$full_visualization)
+      model()$full_visualization
     }else{
-      plot(model()$short_visualization)
-      
+      #plot(model()$short_visualization)
+      model()$short_visualization
     }
   })
   
-  output$main_topic_keyword_table<-renderDataTable(model_topic()$keyword_table,caption=paste("Top Words Data - NPMI:",model_topic()$coherence_npmi))
+  output$main_topic_keyword_table<-renderDataTable(model_topic()$keyword_table,caption=paste("Top Words Data - NPMI:",model_topic()$coherence_npmi,"Topic Divergence (Top terms):",model_topic()$topic_divergence,"Topic Divergence (All terms):",model_topic()$topic_divergence_all))
   
   output$main_clust_keyword_table<-renderDataTable(model()$top_terms,caption="Top Words Data")#
   
@@ -670,6 +679,8 @@ server <- function(input, output, session) {
   output$topic_vis_plot<- renderVis({
     model_topic()$topic_vis
   })
+  
+  
   ##Chosen dataset
   dataset_chosen=reactiveValues(main_matrix=matrix(),txt_col=NULL,class_col=NULL,spl_col=NULL,output_var_type=NULL,no_examples=NULL,split2=matrix())
    
