@@ -295,7 +295,7 @@
     if(glove_leiden==T){
       library(lsa)
        graph_tokens_rev_ii=as.matrix(cosine(t(word_vectors)))
-      graph_tokens_rev_ii[which(graph_tokens_rev_ii<0)]=0
+       graph_tokens_rev_ii[which(graph_tokens_rev_ii<0)]=0
 
     }else{
       graph_tokens_rev_ii=tcm
@@ -320,7 +320,7 @@
     
     coh_list=list()
     div_list=list()
-    div_list_all=list()
+    #div_list_all=list()
     
     for(k_ii in 1:length(ii_thres)){
     ##II - threshold link
@@ -438,15 +438,15 @@
       td_temp=length(unique(as.vector(ldaOut.terms)))/(l*ncol(rel_com))
       div_list[[paste("ii_thres:",ii_thres[k_ii],"Res_parameter:",rp_values[i])]]=td_temp
       
-      td_all_temp=t(rel_com*col_sums)
-      td_all_temp=td_all_temp/rowSums(td_all_temp)
-      td_all_temp=mean(as.vector(JSD(td_all_temp)))
-      div_list_all[[paste("ii_thres:",ii_thres[k_ii],"Res_parameter:",rp_values[i])]]=td_all_temp
+      #td_all_temp=t(rel_com*col_sums)
+      #td_all_temp=td_all_temp/rowSums(td_all_temp)
+      #td_all_temp=mean(as.vector(JSD(td_all_temp)))
+      #div_list_all[[paste("ii_thres:",ii_thres[k_ii],"Res_parameter:",rp_values[i])]]=td_all_temp
       
-      print(paste("threshold:",ii_thres[k_ii],"rp:",rp_values[i],"no clusters:",leiden_clust$nb_clusters,"coherence:",fc,"divergence",td_temp,"divergence all",td_all_temp))
+      print(paste("threshold:",ii_thres[k_ii],"rp:",rp_values[i],"no clusters:",leiden_clust$nb_clusters,"coherence:",fc,"divergence",td_temp))
       
       if(i==1 && k_ii==1){
-        td_all=td_all_temp
+        #td_all=td_all_temp
         td=td_temp
         
         max_coh=fc
@@ -552,7 +552,7 @@
     
     library(ggplot2)
     ppl= ggplot()+
-    ggtitle(paste("II threshold:",ii_thres_final,"Resolution Parameter:",rp_final,"No clusters:",l_clust_final$nb_clusters,"NPMI coherence:",max_coh,"Topic Divergence (Top terms):",td,"Topic Divergence (All terms):",td_all))+
+    ggtitle(paste("II threshold:",ii_thres_final,"Resolution Parameter:",rp_final,"No clusters:",l_clust_final$nb_clusters,"NPMI coherence:",max_coh,"Topic Divergence (Top terms):",td))+
     geom_segment(data=g_matrix,aes(x=from.x,xend = to.x, y=from.y,yend = to.y),colour="black") + #size="weight"
     geom_point(data=all_df,aes(x=V1,y=V2),size=5,colour=(palete_col[as.numeric(all_df$cluster)+1])) +
     geom_text(data=all_df,aes(x=as.numeric(V1),y=as.numeric(V2),label=paste(all_df$cluster,all_df$label)))
@@ -573,7 +573,7 @@
     
     
       
-    return(list("phi"=phi,'leiden_clust'=l_clust_final,"document_memberships"=tSparse_lclust,"keyword_memberships"=rel_com_final,"short_visualization"=ppl,"coherence_npmi"=coh_list,'max_coh'=max_coh,"top_terms"=ldaOut.terms_final,"topic_vis"=topic_vis,"topic_divergence"=td,"topic_divergence_list"=div_list,"topic_divergence_all"=td_all,"topic_divergence_all_list"=div_list_all))
+    return(list("phi"=phi,'leiden_clust'=l_clust_final,"document_memberships"=tSparse_lclust,"keyword_memberships"=rel_com_final,"short_visualization"=ppl,"coherence_npmi"=coh_list,'max_coh'=max_coh,"top_terms"=ldaOut.terms_final,"topic_vis"=topic_vis,"topic_divergence"=td,"topic_divergence_list"=div_list))
     
   }
 }
