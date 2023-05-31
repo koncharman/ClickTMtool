@@ -98,10 +98,11 @@
   cs_order_mem=order(temp_t,decreasing = T)
   ldaOut.terms=ldaOut.terms_final[,cs_order_mem]
   tSparse_fclust=tSparse_fclust[,cs_order_mem]
-  f_clust$U=f_clust$U[,cs_order_mem]
+  #f_clust$U=f_clust$U[,cs_order_mem]
   match_order=match(c(1:ncol(f_clust$U)),cs_order_mem)
-  f_clust$clus[,1]=match_order[f_clust$clus[,1]]
-  
+  #f_clust$clus[,1]=match_order[f_clust$clus[,1]]
+  #f_clust$H=f_clust$H[cs_order_mem,]
+  colnames(tSparse_fclust)=paste("Topic ",c(1:ncol(tSparse_fclust)))
   
   
   pos=unique(match(ldaOut.terms,rownames(f_clust$Xca)))
@@ -121,7 +122,7 @@
   
   library(ggrepel)
   word_vectors=data.frame("x"=word_vectors[,1],"y"=word_vectors[,2])
-  word_vectors$Cluster=as.factor(f_clust$clus[,1])
+  word_vectors$Cluster=as.factor(match_order[f_clust$clus[,1]])
   colnames(word_vectors)=c("x","y","Cluster")
   rownames(word_vectors)=tSparse_colnames
   
@@ -143,7 +144,7 @@
  
   
   
-  phi=t(f_clust$U*col_sums)
+  phi=t(f_clust$U[,cs_order_mem]*col_sums)
   phi=phi/rowSums(phi)
   
   
@@ -226,10 +227,10 @@
     cs_order_mem=order(temp_t,decreasing = T)
     ldaOut.terms=ldaOut.terms_final[,cs_order_mem]
     tSparse_mclust=tSparse_mclust[,cs_order_mem]
-    m_clust_final$z=m_clust_final$z[,cs_order_mem]
+    #m_clust_final$z=m_clust_final$z[,cs_order_mem]
     match_order=match(c(1:ncol(m_clust_final$z)),cs_order_mem)
-    m_clust_final$classification=match_order[m_clust_final$classification]
-    
+    #m_clust_final$classification=match_order[m_clust_final$classification]
+    colnames(tSparse_mclust)=paste("Topic ",c(1:ncol(tSparse_mclust)))
     
     
     
@@ -256,7 +257,7 @@
   library(ggrepel)
     
     word_vectors=data.frame("x"=word_vectors[,1],"y"=word_vectors[,2])
-    word_vectors$Cluster=as.factor(m_clust_final$classification)
+    word_vectors$Cluster=as.factor(match_order[m_clust_final$classification])
     colnames(word_vectors)=c("x","y","Cluster")
     rownames(word_vectors)=tSparse_colnames
     
@@ -280,7 +281,7 @@
   
     
     
-    phi=t(m_clust_final$z*col_sums)
+    phi=t(m_clust_final$z[,cs_order_mem]*col_sums)
     phi=phi/rowSums(phi)
     
     topic_vis=createJSON(mds.method = svd_tsne,phi = phi,theta = tSparse_mclust[split2==T,],doc.length = row_s[split2==T],vocab = colnames(tSparse_train),term.frequency = col_s_train)
@@ -509,7 +510,7 @@
     match_order=match(c(1:ncol(rel_com_final)),cs_order_mem)
     token_memberships_all_final[-disc_nodes_pos]=match_order[token_memberships_all_final[-disc_nodes_pos]]
     
-    
+    colnames(tSparse_lclust)=paste("Topic ",c(1:ncol(tSparse_lclust)))
     
     
     
