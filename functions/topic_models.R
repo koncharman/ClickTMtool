@@ -343,8 +343,9 @@
     
     fc=find_coh(ldaOut.terms,item_list_text$tcm,nrow(item_list_text$dtm[split2==T,]))
     gc()
-    t_h=t(model$h)
-    doc_mem=as.matrix(item_list_text$dtm)%*%t_h%*%solve((model$d*model$h)%*%t_h)
+    #t_h=t(model$h)
+    #doc_mem=as.matrix(item_list_text$dtm)%*%t_h%*%solve((model$d*model$h)%*%t_h)
+    doc_mem=t(project(A = item_list_text$dtm,h=model$h)/model$d)
     gc()
     doc_mem=doc_mem/rowSums(doc_mem)
     
