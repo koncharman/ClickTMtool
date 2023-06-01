@@ -127,14 +127,16 @@
   rownames(word_vectors)=tSparse_colnames
   
   ppl2=ggplot( data = as.data.frame(word_vectors),mapping = aes(x, y,colour = Cluster,label = rownames(word_vectors))) +
-    geom_mark_hull(aes(fill = Cluster,label=as.factor(Cluster)),concavity = 5) +
+    geom_mark_ellipse(aes(fill = Cluster,label=as.factor(Cluster)))+
+    #geom_mark_hull(aes(fill = Cluster,label=as.factor(Cluster)),concavity = 5) +
     #geom_text_repel(max.overlaps = 50)+
     labs(colour="Cluster",x="x",y="y")+
     ggtitle("Cluster Plot")
   
   
   ppl=ggplot( data = as.data.frame(word_vectors[pos,]),mapping = aes(x, y,colour = Cluster,label = rownames(word_vectors[pos,]))) +
-    geom_mark_hull(aes(fill = Cluster,label=as.factor(Cluster)),concavity = 5) +
+    geom_mark_ellipse(aes(fill = Cluster,label=as.factor(Cluster)))+
+    #geom_mark_hull(aes(fill = Cluster,label=as.factor(Cluster)),concavity = 5) +
     geom_text_repel(max.overlaps = 50)+
     labs(colour="Cluster",x="x",y="y")+
     ggtitle(paste("Fuzzy k-means Clustering Plot NPMI:",max_coh,"Topic Divergence (Top terms):",td,"Topic Divergence (All Terms):",td_all))+
