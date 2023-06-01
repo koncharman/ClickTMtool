@@ -348,17 +348,17 @@
     gc()
     doc_mem=doc_mem/rowSums(doc_mem)
     
-    temp_theta=(model$d*(model$w));temp_theta=temp_theta/rowSums(temp_theta)
+    temp_theta=t(model$d*t(model$w));r_theta=rowSums(temp_theta);temp_theta=temp_theta/r_theta
     
     
     #temp_t=model$d
-    temp_t=colSums(temp_theta*row_s[split2==T])
+    temp_t=colSums(temp_theta*r_theta)
     
     
     cs_order_mem=order(temp_t,decreasing = T)
     gc()
     
-    topic_vis=createJSON(mds.method = svd_tsne ,phi = model$h,theta = temp_theta,doc.length = row_s[split2==T],vocab = colnames(item_list_text$dtm),term.frequency = colSums(item_list_text$dtm[split2==T,]))
+    topic_vis=createJSON(mds.method = svd_tsne ,phi = model$h,theta = temp_theta,doc.length = r_theta,vocab = colnames(item_list_text$dtm),term.frequency = colSums(item_list_text$dtm[split2==T,]))
     
     td=length(unique(as.vector(ldaOut.terms)))/(no_top_terms*no_topics)
     
