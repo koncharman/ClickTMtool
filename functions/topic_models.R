@@ -335,6 +335,8 @@
     
     for(j in 1:ncol(ldaOut.terms)){
         temp_ord=order(model$h[j,],decreasing = T)[1:no_top_terms]
+        #temp_ord=order(model$h[j,]*col_s,decreasing = T)[1:no_top_terms]
+        
         ldaOut.terms[,j]=rownames(item_list_text$tcm)[temp_ord]
         
     }
@@ -342,12 +344,21 @@
     fc=find_coh(ldaOut.terms,item_list_text$tcm,nrow(item_list_text$dtm[split2==T,]))
     gc()
     t_h=t(model$h)
-    doc_mem=as.matrix(item_list_text$dtm)%*%t_h%*%solve(model$h%*%t_h)
+    doc_mem=as.matrix(item_list_text$dtm)%*%t_h%*%solve((model$d*model$h)%*%t_h)
     gc()
     doc_mem=doc_mem/rowSums(doc_mem)
     
+    temp_theta=t(model$d*t(model$w));temp_theta=temp_theta/rowSums(temp_theta)
     
-    topic_vis=createJSON(mds.method = svd_tsne ,phi = model$h,theta = model$w/rowSums(model$w),doc.length = row_s[split2==T],vocab = colnames(item_list_text$dtm),term.frequency = colSums(item_list_text$dtm[split2==T,]))
+    
+    #temp_t=model$d
+    temp_t=colSums(temp_theta*row_s[split2==T])
+    
+    
+    cs_order_mem=order(temp_t,decreasing = T)
+    gc()
+    
+    topic_vis=createJSON(mds.method = svd_tsne ,phi = model$h,theta = temp_theta,doc.length = row_s[split2==T],vocab = colnames(item_list_text$dtm),term.frequency = colSums(item_list_text$dtm[split2==T,]))
     
     td=length(unique(as.vector(ldaOut.terms)))/(no_top_terms*no_topics)
     
@@ -355,9 +366,7 @@
     
     td_all=mean(as.vector(JSD(model$h)))
     
-    temp_t=colSums(doc_mem[split2,]*row_s[split2==T])
-    cs_order_mem=order(temp_t,decreasing = T)
-    
+   
     
     return(list("phi"=model$h[cs_order_mem,],'model'=model,'keyword_table'=ldaOut.terms[,cs_order_mem],'coherence_npmi'=fc,"document_memberships"=doc_mem[,cs_order_mem],'topic_vis'=topic_vis,"topic_divergence"=td,"topic_divergence_all"=td_all))
     
