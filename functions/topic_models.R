@@ -348,7 +348,7 @@
     gc()
     doc_mem=doc_mem/rowSums(doc_mem)
     
-    temp_theta=t(model$d*t(model$w));temp_theta=temp_theta/rowSums(temp_theta)
+    temp_theta=(model$d*(model$w));temp_theta=temp_theta/rowSums(temp_theta)
     
     
     #temp_t=model$d
