@@ -1037,6 +1037,19 @@ server <- function(input, output, session) {
     word_vectors_list$words=word_vectors_list$words[matched_names,]
     item_list_text$tcm=item_list_text$tcm[matched_names,matched_names]
     item_list_text$old_words=item_list_text$old_words[matched_names]
+    
+    r_sums=rowSums(item_list_text$dtm)
+    
+    col_s=colSums(item_list_text$dtm)
+    col_s_max=which(col_s==max(col_s))
+    
+    r_sums_0=which(r_sums==0)
+    
+    if(length(r_sums_0)>0){
+      item_list_text$text[r_sums_0]=unlist(lapply(item_list_text$text[r_sums_0],function(x)paste(x,names(col_s_max))))
+      item_list_text$dtm[r_sums_0,col_s_max]=1
+      r_sums[r_sums_0]=1
+    } 
     })
   
   #topic model from clustering approaches
