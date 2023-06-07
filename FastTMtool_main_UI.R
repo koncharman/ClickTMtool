@@ -603,7 +603,7 @@ server <- function(input, output, session) {
     caption=paste("Regression coefficients:",input$model_choice))
   
   reg_res_topic=reactive({
-    
+    #colnames(model_topic()$document_memberships)=paste("Topic",c(1:ncol(model_topic()$document_memberships)))
     if(dataset_chosen$output_var_type=="nom_choice"){
       
       if(length( dataset_chosen$table_label)==2){
@@ -1070,8 +1070,12 @@ server <- function(input, output, session) {
   #topic modelling alternatives
   model_topic<-eventReactive(input$topic_model_build,{
     print(paste(input$topic_model_choice,input$no_topics,input$min_doc,input$max_doc))
-    return(topic_models(item_list_text = item_list_text,word_vectors = word_vectors_list$words,type = input$topic_model_choice,no_topics = input$no_topics,split2=dataset_chosen$split2,iter_var=input$topic_iter,alpha_var=input$topic_alpha,beta_var=input$topic_beta,as_alpha=input$as_alpha,no_top_terms=input$num_top_t,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
-  })
+    temp=(topic_models(item_list_text = item_list_text,word_vectors = word_vectors_list$words,type = input$topic_model_choice,no_topics = input$no_topics,split2=dataset_chosen$split2,iter_var=input$topic_iter,alpha_var=input$topic_alpha,beta_var=input$topic_beta,as_alpha=input$as_alpha,no_top_terms=input$num_top_t,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
+    colnames(temp$document_memberships)=paste("Topic",c(1:ncol(temp$document_memberships)))
+    colnames(temp$keyword_table)=paste("Topic",c(1:ncol(temp$keyword_table)))
+    
+    return(temp)
+    })
   
   #document vectors
   model_docvec=reactiveValues(doc_vectors = NULL)
