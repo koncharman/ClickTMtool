@@ -86,8 +86,8 @@ ui <- fluidPage(
                            
                            
                            actionButton(inputId = "random_split",label = "Random Split 70-30"),
-                           
-
+                           actionButton(inputId = "all_train_split",label = "No testing dataset"),
+                            
                            #Additional Variables
                            tags$h2(tags$strong("Add more variables")),
                            
@@ -131,7 +131,7 @@ ui <- fluidPage(
                            tags$h3(tags$b("Document Representation Options")),
 
   
-                           radioButtons(inputId="dtm_tfidf_choose",label="Document Term Matrix Options",choices = c("Term Frequency"="tf_chosen","TF-IDF"="tfidf_chosen")),
+                           radioButtons(inputId="dtm_tfidf_choose",label="Document Term Matrix Options",choices = c("Raw Term Count"="tf_chosen","TF-IDF"="tfidf_chosen")),
                           
                            #Thersholds for word occurence
                            textOutput(outputId = "Document_ratio_title"),
@@ -143,7 +143,7 @@ ui <- fluidPage(
                            checkboxInput(inputId = "do_stem",label = "Do stemming",value = F),
                            checkboxInput(label = "Remove stopwords",inputId = "do_rmv_stop",value = F),
                            
-                           checkboxInput(inputId = "ngrams_clause",label = "Ngrams",value = F),
+                           checkboxInput(inputId = "ngrams_clause",label = "N-grams",value = F),
                            conditionalPanel(condition = "input.ngrams_clause == true",fluidRow(column(width = 4,offset = 0,numericInput(inputId = "min_ngrams",label = "min ngrams",value = 2,min=1,max=6)),column(width = 4,offset = 0,numericInput(inputId = "max_ngrams",label = "max ngrams",value = 4,min=2,max=6)))),
                            
                            conditionalPanel(condition = "input.bp== false",checkboxGroupInput(inputId = "txt_preprocess",label = "Additional Text Preprocessing Options",choices=c(
@@ -151,9 +151,9 @@ ui <- fluidPage(
                            actionButton(inputId = "complete_preprocessing",label = "Apply text preprocessing"),
                            
                            #build word vectors
-                           HTML(paste("<h3 style='font-weight: bold'>","Word Vectors Options","</h3>",sep="")),
+                           HTML(paste("<h3 style='font-weight: bold'>","Word Representation Options","</h3>",sep="")),
                            
-                           selectizeInput(inputId = "vector_choice",label="Select word vectors",choices = list("Glove full binary coocurence"="glove_tcm","Glove full coocurence"="glove_tcm_full","Glove skipgram"="glove_skip","TCM standarized"="tcm_stand","TCM inclusion index"="tcm_ii","TCM reverse inclusion index"="tcm_rev_ii","Term existence"="tdm_te","Spearman correlation coefficient on Term existence matrix"="spearman_word_corr","Word2vec (Skipgram)"="word2vec_skipgram","Word2vec (CBOW)"="word2vec_cbow")),
+                           selectizeInput(inputId = "vector_choice",label="Select word vectors",choices = list("GloVe full binary coocurence"="glove_tcm","GloVe full coocurence"="glove_tcm_full","GloVe skipgram"="glove_skip","TCM standarized"="tcm_stand","TCM inclusion index"="tcm_ii","TCM reverse inclusion index"="tcm_rev_ii","Term existence"="tdm_te","Spearman correlation coefficient on Term existence matrix"="spearman_word_corr","Word2vec (Skipgram)"="word2vec_skipgram","Word2vec (CBOW)"="word2vec_cbow")),
                            conditionalPanel("input.vector_choice!='tdm_te' &&  input.vector_choice!= 'spearman_word_corr' && input.vector_choice!='tcm_stand' && input.vector_choice!='tcm_rev_ii' && input.vector_choice!='tcm_ii'",numericInput(inputId = "vector_size",label = "Vector size",value = 50,min = 1)),
                            fluidRow(column(width = 6,offset = 0,checkboxInput(inputId = "auto_enc",label="Apply auto encoder")),column(width = 6,offset = 0,numericInput(inputId = "auto_enc_dim",label = "Number of Dimensions",value = 20,min = 2))),
                            
@@ -162,7 +162,7 @@ ui <- fluidPage(
                            #When the UMAP dimensionality reduction technique is selected, one additional parameter is available.
                            
                                         
-                           radioButtons(inputId = "dim_red_options",label = "Dimensionality Reduction Options",choices = list("No Reduction"="no_red","Factor Analysis"="factanal_red","UMAP"="umap_red","TSNE"="tsne_red","PCA"="pca_red","SVD"="svd_red")),
+                           radioButtons(inputId = "dim_red_options",label = "Dimensionality Reduction Options",choices = list("No Reduction"="no_red","Factor Analysis"="factanal_red","UMAP"="umap_red","t-SNE"="tsne_red","PCA"="pca_red","SVD"="svd_red")),
                            numericInput(inputId = "no_umap_dims",label = "Number of Dimensions",value = 2),                 
                            conditionalPanel(condition = "input.dim_red_options == 'umap_red'",numericInput(inputId = "nn_umap",label = "UMAP word neighbors",min=2,step=1,value = 5),
                                             
@@ -343,7 +343,7 @@ ui <- fluidPage(
                            #Available alternatives of models
                            selectizeInput(inputId = "doc_vec_model",label = "Document Vector Types",choices=list("Starspace"="star_model",'FastText'="ft_model","Deep Averaging Networks"="dan_model","Convolutional Neural Network (CNN)"="CNN","Recurrent Neural Network (RNN)"="RNN","Long Short Term Memory (LSTM)"="LSTM")),
                            #Number of dimensions
-                           numericInput(inputId = "doc_vec_dims",label = "No of Dimensions",value = 50,min = 2,step = 5),
+                           numericInput(inputId = "doc_vec_dims",label = "Number of Dimensions",value = 50,min = 2,step = 5),
                            #Information passed to the models, not available when the fastText or the starspace model is selected. Building a model using the all words, the words included in the Document Term Matrix with initialized weights (word vectors - see Text Preprocessing Tab) and without initialized weights. 
                            conditionalPanel("input.doc_vec_model != 'star_model' && input.doc_vec_model != 'ft_model'",selectizeInput(inputId = "type_words_doc_vec",label="Type of word weights initilization",choices = list("All words with no initiliazed weights"="all_words","DTM words with no initiliazed weights"="dtm_nw","DTM words with initialized weights"="dtm_ww"))),
                            #Button for model building
@@ -442,7 +442,151 @@ ui <- fluidPage(
                           
                         )
                       )
-             )
+             ),
+             tabPanel("Guide and Info",
+                      
+                      tags$h2("Datasets in the Repository"),
+                      
+                        tags$h3("File: 20newsgroup_combined.csv"),
+                          tags$body("Description: The 20 Newsgroups data set is a collection of approximately 20,000 newsgroup documents, partitioned (nearly) evenly across 20 different newsgroups. Each observation has a textual decription and is assigned to 1 class indicating its general theme"),
+                          br(),br(),
+                          tags$body("Reference: Lang, K. (1995). Newsweeder: Learning to filter netnews. In Machine learning proceedings 1995 (pp. 331-339). Morgan Kaufmann."),
+                     
+                        tags$h3("File: bbc-text.csv"),
+                          tags$body("Description: Dataset with 2225 observations originated from the BBC news. Each observation has a textual decription and is assigned to 1 class indicating its general theme"),
+                          br(),br(),
+                          tags$body("Reference: D. Greene and P. Cunningham. 'Practical Solutions to the Problem of Diagonal Dominance in Kernel Document Clustering', Proc. ICML 2006."),
+                          br(),br(),
+                          tags$body("Notes: This dataset was used in the Readme/Quick tour of the official FastTMtool repository"),
+                        tags$h3("File: df_title_cwe_exploit_from_2009.xlsx"),
+                          tags$body("Description: 144166 records of sotware vulnerabilities from 2009 to 2023"),
+                          br(),br(),
+                          tags$body("Reference: Charmanas, K., Mittas, N., & Angelis, L. (2021, November). Predicting the existence of exploitation concepts linked to software vulnerabilities using text mining. In 25th Pan-Hellenic Conference on Informatics (pp. 352-356)."),
+                          br(),br(),
+                          tags$body("Notes: This dataset contains textual descriptions and multiple severity metrics of softwware vulneraibilities"),
+                        tags$h3("File: df_exploit_no_cwe_codes (R Data Structure - RDS"),
+                          tags$body("Description: 8210 records of sotware vulnerabilities from 2022. This dataset is good for practice as it is coherent, without long descriptions and a relatively small size."),
+                          br(), br(),
+                          tags$body("Reference: Charmanas, K., Mittas, N., & Angelis, L. (2021, November). Predicting the existence of exploitation concepts linked to software vulnerabilities using text mining. In 25th Pan-Hellenic Conference on Informatics (pp. 352-356)."),
+                          br(), br(),
+                          tags$body("Notes: This dataset contains textual descriptions and multiple severity metrics of softwware vulneraibilities"),
+                      tags$h2("File Tab"),
+                        tags$h3("Necessary Actions"),
+                          tags$body("Step 1: Load your data through the browse button. The data should be stored in the same directory or sub directories of the file 'FastTMtool_main_UI.R'. Currently supported data structures (.csv,.xlsx,.RDS)"),
+                          br(), br(),
+                          tags$body("Step 2: Define Text column, Class column, Split column and then select whether your output class is nominal or continuous. Then press the button Confirm variable assessment to confirm your choices. Do not afraid to define a random column of the data as a split column if there is not one initially. You can use the button 'Random Split' or the button 'No testing dataset' afterwards."),
+                        
+                        tags$h3("Optional Actions"),
+                          tags$body("Step 3: When the data contain a column that indicates whether an observation belongs to the training or testing dataset (TRUE and FALSE values), the buttons 'Random Split' and 'No testing dataset' can be avoided. Otherwise, the user must select 1 of these 2 options"),
+                          br(), br(),
+                          tags$body("Step 4: The user can select additional variables (Nominal or Continuous) that will be used to train machine learning models later"),
+                      tags$h2("Text Preprocessing"),
+                        tags$h3("Document Representation Options"),
+                          tags$body("Document Term Matrix Options: The user must select an option for the desired document representation where the raw term count (Bag of Words) and the Term Frequency - Inverse Document Frequency are currently supported. Useful Link: 'https://en.wikipedia.org/wiki/Tf-idf'"),
+                      br(), br(),   
+                        tags$body("Keyword-Document frequency ratio: The user should define the min and max parameters, i.e. the minimum and maximum number of documents a word must occur to be included in the Document Term Matrix."),
+                        tags$h3("Preprocessing Options"),
+                          tags$body("Do stemming: Apply stemming procedures where each token/word is transformed into its root content. For example, the words 'match','matching' and 'matches' will be transformed into the word 'match'.
+                                    "),br(), br(),
+                                    tags$body("Remove stopwords: Stopwords are a set of common words that are used in general context and do not carry significant information. Words like 'the', 'too', 'i','and','my','it' are among the stopwords.
+                                    "),br(), br(),
+                      tags$body("N-grams: A sequence of words of N items that form a phrase which is accounted as a token in the Document Term Matrix when this option is selected. Usefull Link - https://en.wikipedia.org/wiki/N-gram"),
+                          tags$h4("Option 1: 'Basic Preprocess' Lower case transformation and keeping only alphanumeric characters."),
+                          tags$h4("Option 2:  Additional Text Preprocessing Options"),
+                            tags$body("lower case transformation: Transform all upper case characters into lower case"),
+                      br(), br(),      
+                      tags$body("remove mentions: Words or subwords that start with the symbol '@' are replaced by white space"),
+                      br(), br(),      
+                      tags$body("replace numbers: Numbers are replaced by words. for example the number 124 is replaced by tge phrase 'one hundred twenty-four'. Words like '123rt' are not replaced"),
+                      br(), br(),    
+                      tags$body("replace hash code: Words or subwords that start with the symbol '#' are replaced by white space"),
+                            br(), br(),
+                      tags$body("replace html: All characters that are included inbetween a text that starts with '<' and ends with '>' are removed"),
+                      br(), br(),      
+                      tags$body("replace question marks: Question marks are replaced with the word 'questionmark'"),
+                      br(), br(),     
+                      tags$body("replace exclamation marks: Exclamation marks are replaced with the word 'exclamationmark'"),
+                      br(), br(),     
+                      tags$body("replace punctutation: All punctuation characters are removed, e.g. '.', '$', '%'."),
+                      br(), br(),     
+                      tags$body("replace digits: All numerical characters are replaced by whitespace. For example the phrase '123rt' is transformed into ' rt'"),
+                      br(), br(),     
+                      tags$h4("When you finish selecting all the necessary options, i.e. Document representations, Keyword-Document frequency ratio and Preprocessing Options, you should press the button Apply text preprocessing which will construct a document term matrix and term co-occurence matrix based on your selections. These two matrices constitute the basis for the utilities of FastTMtool."),
+                        tags$h3("Word Vectors Options"),
+                          tags$h4("Select word vectors"),
+                            tags$body("GloVe, from Global Vectors, is an unsupervised method for creating word embeddings where words that co-occur frequently are projected nearby in the new embedding space. The respective inputs reflect on word co-occurences or relevant measurements of co-occurence. 
+                                    Word2Vec is an unsupervised method that is similar to GloVe and aims at establishing efficient word vectors. TCM refers to the Term Co-occurence Matrix and can be used to effectively capture the similarities between the words. The proposed variations manipulate the initial Term Co-occurence Matrix based on different rules.
+                                    The spearman correlation coefficient establishes word reperesentations based on their pairwise correlations.
+                                    An autoencoder is also an unsupervised method used to transform high demensional representations into a new, usually a lower dimensional, structure.
+                                    "),
+                          tags$h4("Dimensionality Reduction Options"),
+                            tags$body("There are multiple available dimensionality reduction options that reduce the dimensionality of the initial word embeddings/vectors. In general, these approaches support the clustering methodologies in detecting coherent clusters.
+                                    "),br(),br(),
+                                    tags$body("UMAP: Unifold Manifold Approximation Projection"),br(),br(),
+                                    tags$body("Factor Analysis"),br(),br(),
+                                    tags$body("t-SNE: T-distributed stochastic neighbor embedding"),br(),br(),
+                                    tags$body("PCA: Principal Component Analysis"),br(),br(),
+                                    tags$body("SVD: Singular Value Decomposition"),
+                      br(),br(),      
+                      tags$h4("The button 'Build Word representations' builds the configured word representation and then apply an auto encoder and a dimensinolitry reduction algorithm, when they are selected"),
+                      tags$h2("Feature Selection"),
+                        tags$h3("Select Matrix for feature evaluation"),
+                          tags$body("Available options: Document Term matrix (Created in the previous tab) and Document Term matrix (dichotomized) that dichotomizes the Document Term Matrix where values equal to 1 indicate the occurence of a word, at least once, in a document while values equal to 0 indicate the opposite"),
+                        tags$h3("Method for feature evaluation"),
+                          tags$body("A method is selected to evaluate the importance of each word based on the output variable. The available options are based on the R package 'praznik' while also the cosine similarity and the spearman correlation coeffecient can be used to evaluate the words' importance as well.
+                                    "),
+                          br(),br(),
+                          tags$h4("The button 'Perform Feature Evaluation' evaluates the importance of each word and then the button 'Perform Feature Selection' can be used to exclude the words that are not included in the subset of the most important words (defined by the users via the 'Number of features' option) from your analysis."),
+                      tags$h2("Word Clustering"),
+                        tags$h3("Select model"),
+                          tags$body("Short Description: 3 word clustering techniques for discovering underlying topics from word representations (discussed previously). The first two rely on spatial information to identify clusters and define their properties. The third one is uses word co-occurences or similarities from word embeddings/representations to establish networks/graphs whose edges indicate strong similarities or frequent co-occurences"),br(),br(),
+                          tags$body("Fuzzy k-means Clustering: A variation of the standard k-means algorithm where each data point is assigned to all clusters with a positive degree of memebrship.
+                                    All the memberships add to one for each data point (in our case words). The memberships are calculated based on the distance of each data point from the centroids of each cluster. Relevant R package: fclust"),br(),br(),
+                                    tags$body("Gaussian Mixture model based clustering: This algorithm establishes clusters that carry gaussian properties, i.e. mean (or center) and covariance, which are used to calculate the cluster memberships of the words. Relevant R package: mclust"),br(),br(),
+                          tags$body("Graph Clustering Using the Leiden Algorithm: In this approach, we employ the Leiden algorithm for network clustering (see R package igraph) that is able to detect network communities that are formed by nodes and edges. In our case, a node is denoted by a word or N-gram and the edges
+                                    indicate strong Co-occurences between the connected nodes."),br(),br(),
+                        tags$h4("Notes: FastTMtool trains several models for the selected algorithm and picks the 'optimal' one based on a topic coherence measure, i.e. a measure that evaluates the quality of the extracted topics expressed by clusters.
+                                 When the leiden Algorithm is selected, FastTMtool trains 100 models using different parameters to identify the 'optimal' model while for the rest 2 options the user is able define the range of topics/clusters, Default range is 2-20 topics."),br(),
+                        
+                          tags$body("Do not include the word frequencies to find the top words of clusters: The topic coherence of a model relies on the Co-occurence frequencies between the most probable words of each topic/cluster for a predefined number of words ('Number of top terms')"),br(),br(),
+                          tags$body("Do not standarize the topic memberships of words: In the proposed approach that is based on the Leiden algorithm, the topic membership of a word is measured by the overall linkage of this word with the words that form each cluster. When this options is selected, these memberships are not standarized to sum to one"),br(),br(),
+                          tags$body("Do not include the word frequencies to find the top words of clusters: The topic membership of a word and the overall number of documents that this word occurs form the basis to calculate a score between a word and a topic in order to define top words of each topic. 
+                                    When this option is selected, only the initial topic memberships are used to calculate these scores."), br(),br(),
+                        tags$h4("Build model: Based on the predefined options FastTMtool builds several models and selects the 'optimal' one for further analysis."), br(),
+                      tags$h2("Topic modelling"),br(),
+                        tags$h3("Select topic model"),br(),
+                          tags$body("LDA (VEM): Latent Dirichlet Allocation wit the Variational Expectation Maximization algorithm"),br(),br(),
+                          tags$body("LDA (Collapsed Gibbs Sampling): Latent Dirichlet Allocation with the Collapsed Gibbs Sampler"),br(),br(),
+                          tags$body("NMF: Non Negative Matrix Factorization"),br(),br(),
+                          tags$body("CTM: Correlated Topic Models with the Variational Expectation Maximization algorithm"),br(),br(),
+                          tags$body("STM: Structural Topic Models"),br(),br(),
+                          tags$body("ETM: Topic Models in Embedding Spaces"),br(),br(),
+                          tags$body("LSA: Latent Semantic Analysis"),br(),br(),
+                        tags$h3("Number of topics: A model is trained for a predefined number of topics"), br(),br(),
+                        tags$h3("Number of top terms: The number of top terms that are used to calculate the topic coherence and divergence of a topic."), br(),br(),
+                      tags$h2("Document Vectors"), br(),br(),
+                        tags$h3("Document Vector Types: FastTMtool leverages several existing architectures that are based on neural networks to create models for text classification. These
+                                architectures are displayed with their full description. The CNN, RNN and LSTM have python dependencies while Deep Averaging Networks have Java dependencies."), br(),
+                        tags$h3("Number of Dimensions: Usually as this parameter increases, the model captures the similarities between the documents more accurately but they also require massive memory and lead to slower calculations"), br(),
+                        tags$h3("Notes: Currently, Document Vectors are only used to train text classification models. We believe that a more experienced user should intervene to the main source code files that are related to the Document Vectors, i.e. 'Document_vectors' and 'tensorflow_keras_nn_funs'"), br(),
+                      tags$h2("Classification features"), br(),
+                        tags$h3("In this tab, a user can train a machine learning model based on different structures that establish document vectors. The model is trained using the 
+                                dependent variable and the training dataset that are defined in the File Tab. The models are then evaluated using the observations that belong to the testing dataset which is also defined in the same Tab."),br(),
+                          tags$h4("Document Term Matrix: Uses the Document Term Matrix created in the Text Preprocessing Tab to train machine learning models"), br(),
+                          tags$h4("Document Term Matrix: The Document Term Matrix is manipulated so that that values greater than 0 are all transformed to 1."), br(),
+                          tags$h4("Average Word Vectors: If you have established word vectors, then this approach calculates the average word vector for a document using the Document Term Matrix and the Word Vectors."), br(),
+                          tags$h4("Cluster Model: This option leverages the posterior cluster memberships (Word Clustering Tab) to train machine learning models"), br(),
+                          tags$h4("Topic Model: This option leverages the posterior topic memberships (Topic Modelling Tab) to train machine learning models"), br(),
+                          tags$h4("Document Vectors: The Document Vevtors (Document Vectors Tab) are used  to train machine learning models"), br(),
+                      tags$h2("Import Files"),br(),
+                        tags$h3("The user is able to import data from an external source, i.e. his pc. Note that the Document Term Matrix, the Word Vectors and the Term Co-occurence matrix should agree. We suggest that you experiment on an existing dataset and export these files (see next Tab) so that you will understand the appropriate format of the imported data"), br(),
+                      tags$h2("Export Files"),br(),
+                        tags$h3("The user is able to export data to an external source, i.e. his pc. We tried to give the opportunity to export every available data structure so that the users can leverage the outcoming findings/structures for meta analysis."),br(),
+                      
+                      tags$h2("Thank you for using the FastTMtool, we hope that you find this guide useful. For any misunderstanding or further guidance, please commend on our repository so that we can complementary
+ additional information"), br(),
+                      br(),br(),br()
+                      )
               
               )
   
@@ -1096,6 +1240,10 @@ server <- function(input, output, session) {
       dataset_chosen$split2[temp_sample]=T
     }
     
+  })
+  
+  observeEvent(input$all_train_split,{
+    dataset_chosen$split2=rep(T,nrow(dataset_chosen$main_matrix))
   })
   
   #Updating options for the word information passed to the alternative models for building document vectors
