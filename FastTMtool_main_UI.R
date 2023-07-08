@@ -12,6 +12,7 @@ library(wordcloud2)
 library(shinydashboard)
 library(shinyWidgets)
 library(nnet)
+library(shinythemes)
 
 set.seed(831)
 
@@ -46,18 +47,29 @@ word_vectors_list=NULL
 ui <- fluidPage(
   
   #setBackgroundColor(color = c("#C8A8D1", "#FFB6B6"),gradient = "linear",direction = c("top", "left")),
- 
+  setBackgroundColor(color = c("#5974A4","#FFFFFF"),gradient = "linear",direction = c("top", "left")),
   
-  titlePanel(title = "Welcome to FastTMtool",windowTitle = "FTMT"),
+  #5974A4
+  tags$head(tags$style(
+    HTML('
+         #sidebar {
+            background-color: #5974A4;
+            
+        }
+         
+         '))),
+  
+  titlePanel(title = "Welcome to FastTMtool",windowTitle = "FTMT" ),
   #tabsetPanel(type = "tabs",
   #navlistPanel("Navigation List",
   #navbarMenu("Navigation Menu",
   #dashboardSidebar()
-  navbarPage("",
+  navbarPage(theme = shinytheme("sandstone"),
+             title="", collapsible = TRUE,
               tabPanel("File",
                        
                        sidebarLayout( 
-                         sidebarPanel(
+                         sidebarPanel(id="sidebar",
                            
                            ##complete file and variables assesmment
                            tags$h2(tags$strong("Import Data")),
@@ -124,7 +136,7 @@ ui <- fluidPage(
                        ),
               tabPanel("Text Preprocessing",
                        sidebarLayout( 
-                         sidebarPanel(
+                         sidebarPanel(id="sidebar",
                            ##complete text preprocessing
                            
                            #Bag of Words or TF-IDF
@@ -207,7 +219,7 @@ ui <- fluidPage(
                        ),
               tabPanel("Feature Selection",
                        sidebarLayout( 
-                         sidebarPanel(
+                         sidebarPanel(id="sidebar",
                            tags$h2(tags$strong("Feature Evaluation and Selection Options")),
                            
                            #Feature evaluation options
@@ -245,7 +257,7 @@ ui <- fluidPage(
                        ),
               tabPanel("Word Clustering",
                        sidebarLayout( 
-                         sidebarPanel(
+                         sidebarPanel(id="sidebar",
                            ##build model
                            tags$h2(tags$strong("Keyword Clustering Options")),
                            
@@ -299,7 +311,7 @@ ui <- fluidPage(
                        ),
               tabPanel("Topic Modelling",
                        sidebarLayout( 
-                         sidebarPanel(
+                         sidebarPanel(id="sidebar",
                            #Build topic model
                            tags$h2(tags$strong("Topic Modelling Options")),
                            #Available alternatives of topic modelling algorithms
@@ -336,7 +348,7 @@ ui <- fluidPage(
                         ),
               tabPanel("Document Vectors",
                        sidebarLayout( 
-                         sidebarPanel(
+                         sidebarPanel(id="sidebar",
                            #Building Document vectors mostly based on different neural network architectures
                            tags$h2(tags$strong("Document Vector Options")),
                            
@@ -352,12 +364,14 @@ ui <- fluidPage(
                          ),
                          mainPanel(
                            #Maybe add some Information in the next update
+                           tags$h2(tags$strong("Trained Document Vectors")),
+                           textOutput("doc_vecs_info")
                          )
                        )
               ),
               tabPanel("Prediction Models",
                        sidebarLayout( 
-                         sidebarPanel(
+                         sidebarPanel(id="sidebar",
                            tags$h2(tags$strong("Prediction Model Options")),
                            
                            ##Classification and Regression Options
@@ -404,7 +418,7 @@ ui <- fluidPage(
              tabPanel("Export Files",
                       
                       sidebarLayout( 
-                        sidebarPanel(
+                        sidebarPanel(id="sidebar",
                           tags$h2(tags$strong("Data Export Options")),
                           
                           selectInput("download_list", "Choose a dataset:",
@@ -445,7 +459,8 @@ ui <- fluidPage(
              ),
              tabPanel("Guide and Info",
                       
-                      tags$h2("Datasets in the Repository"),
+                      span(tags$h2("Datasets in the Repository"),style="color:blue"),
+                     
                       
                         tags$h3("File: 20newsgroup_combined.csv"),
                           tags$body("Description: The 20 Newsgroups data set is a collection of approximately 20,000 newsgroup documents, partitioned (nearly) evenly across 20 different newsgroups. Each observation has a textual decription and is assigned to 1 class indicating its general theme"),
@@ -463,14 +478,14 @@ ui <- fluidPage(
                           br(),br(),
                           tags$body("Reference: Charmanas, K., Mittas, N., & Angelis, L. (2021, November). Predicting the existence of exploitation concepts linked to software vulnerabilities using text mining. In 25th Pan-Hellenic Conference on Informatics (pp. 352-356)."),
                           br(),br(),
-                          tags$body("Notes: This dataset contains textual descriptions and multiple severity metrics of softwware vulneraibilities"),
+                          tags$body("Notes: This dataset contains textual descriptions and multiple severity metrics of software vulneraibilities"),
                         tags$h3("File: df_exploit_no_cwe_codes (R Data Structure - RDS"),
                           tags$body("Description: 8210 records of sotware vulnerabilities from 2022. This dataset is good for practice as it is coherent, without long descriptions and a relatively small size."),
                           br(), br(),
                           tags$body("Reference: Charmanas, K., Mittas, N., & Angelis, L. (2021, November). Predicting the existence of exploitation concepts linked to software vulnerabilities using text mining. In 25th Pan-Hellenic Conference on Informatics (pp. 352-356)."),
                           br(), br(),
                           tags$body("Notes: This dataset contains textual descriptions and multiple severity metrics of softwware vulneraibilities"),
-                      tags$h2("File Tab"),
+                      span(tags$h2("File"),style="color:blue"),
                         tags$h3("Necessary Actions"),
                           tags$body("Step 1: Load your data through the browse button. The data should be stored in the same directory or sub directories of the file 'FastTMtool_main_UI.R'. Currently supported data structures (.csv,.xlsx,.RDS)"),
                           br(), br(),
@@ -480,7 +495,7 @@ ui <- fluidPage(
                           tags$body("Step 3: When the data contain a column that indicates whether an observation belongs to the training or testing dataset (TRUE and FALSE values), the buttons 'Random Split' and 'No testing dataset' can be avoided. Otherwise, the user must select 1 of these 2 options"),
                           br(), br(),
                           tags$body("Step 4: The user can select additional variables (Nominal or Continuous) that will be used to train machine learning models later"),
-                      tags$h2("Text Preprocessing"),
+                      span(tags$h2("Text Preprocessing"),style="color:blue"),
                         tags$h3("Document Representation Options"),
                           tags$body("Document Term Matrix Options: The user must select an option for the desired document representation where the raw term count (Bag of Words) and the Term Frequency - Inverse Document Frequency are currently supported. Useful Link: 'https://en.wikipedia.org/wiki/Tf-idf'"),
                       br(), br(),   
@@ -529,7 +544,7 @@ ui <- fluidPage(
                                     tags$body("SVD: Singular Value Decomposition"),
                       br(),br(),      
                       tags$h4("The button 'Build Word representations' builds the configured word representation and then apply an auto encoder and a dimensinolitry reduction algorithm, when they are selected"),
-                      tags$h2("Feature Selection"),
+                      span(tags$h2("Feature Selection"),style="color:blue"),
                         tags$h3("Select Matrix for feature evaluation"),
                           tags$body("Available options: Document Term matrix (Created in the previous tab) and Document Term matrix (dichotomized) that dichotomizes the Document Term Matrix where values equal to 1 indicate the occurence of a word, at least once, in a document while values equal to 0 indicate the opposite"),
                         tags$h3("Method for feature evaluation"),
@@ -537,7 +552,7 @@ ui <- fluidPage(
                                     "),
                           br(),br(),
                           tags$h4("The button 'Perform Feature Evaluation' evaluates the importance of each word and then the button 'Perform Feature Selection' can be used to exclude the words that are not included in the subset of the most important words (defined by the users via the 'Number of features' option) from your analysis."),
-                      tags$h2("Word Clustering"),
+                      span(tags$h2("Word Clustering"),style="color:blue"),
                         tags$h3("Select model"),
                           tags$body("Short Description: 3 word clustering techniques for discovering underlying topics from word representations (discussed previously). The first two rely on spatial information to identify clusters and define their properties. The third one is uses word co-occurences or similarities from word embeddings/representations to establish networks/graphs whose edges indicate strong similarities or frequent co-occurences"),br(),br(),
                           tags$body("Fuzzy k-means Clustering: A variation of the standard k-means algorithm where each data point is assigned to all clusters with a positive degree of memebrship.
@@ -553,7 +568,7 @@ ui <- fluidPage(
                           tags$body("Do not include the word frequencies to find the top words of clusters: The topic membership of a word and the overall number of documents that this word occurs form the basis to calculate a score between a word and a topic in order to define top words of each topic. 
                                     When this option is selected, only the initial topic memberships are used to calculate these scores."), br(),br(),
                         tags$h4("Build model: Based on the predefined options FastTMtool builds several models and selects the 'optimal' one for further analysis."), br(),
-                      tags$h2("Topic modelling"),br(),
+                      span(tags$h2("Topic modelling"),style="color:blue"),br(),
                         tags$h3("Select topic model"),br(),
                           tags$body("LDA (VEM): Latent Dirichlet Allocation wit the Variational Expectation Maximization algorithm"),br(),br(),
                           tags$body("LDA (Collapsed Gibbs Sampling): Latent Dirichlet Allocation with the Collapsed Gibbs Sampler"),br(),br(),
@@ -564,12 +579,12 @@ ui <- fluidPage(
                           tags$body("LSA: Latent Semantic Analysis"),br(),br(),
                         tags$h3("Number of topics: A model is trained for a predefined number of topics"), br(),br(),
                         tags$h3("Number of top terms: The number of top terms that are used to calculate the topic coherence and divergence of a topic."), br(),br(),
-                      tags$h2("Document Vectors"), br(),br(),
+                      span(tags$h2("Document Vectors"),style="color:blue"), br(),br(),
                         tags$h3("Document Vector Types: FastTMtool leverages several existing architectures that are based on neural networks to create models for text classification. These
                                 architectures are displayed with their full description. The CNN, RNN and LSTM have python dependencies while Deep Averaging Networks have Java dependencies."), br(),
                         tags$h3("Number of Dimensions: Usually as this parameter increases, the model captures the similarities between the documents more accurately but they also require massive memory and lead to slower calculations"), br(),
                         tags$h3("Notes: Currently, Document Vectors are only used to train text classification models. We believe that a more experienced user should intervene to the main source code files that are related to the Document Vectors, i.e. 'Document_vectors' and 'tensorflow_keras_nn_funs'"), br(),
-                      tags$h2("Classification features"), br(),
+                      span(tags$h2("Classification features"),style="color:blue"), br(),
                         tags$h3("In this tab, a user can train a machine learning model based on different structures that establish document vectors. The model is trained using the 
                                 dependent variable and the training dataset that are defined in the File Tab. The models are then evaluated using the observations that belong to the testing dataset which is also defined in the same Tab."),br(),
                           tags$h4("Document Term Matrix: Uses the Document Term Matrix created in the Text Preprocessing Tab to train machine learning models"), br(),
@@ -578,13 +593,13 @@ ui <- fluidPage(
                           tags$h4("Cluster Model: This option leverages the posterior cluster memberships (Word Clustering Tab) to train machine learning models"), br(),
                           tags$h4("Topic Model: This option leverages the posterior topic memberships (Topic Modelling Tab) to train machine learning models"), br(),
                           tags$h4("Document Vectors: The Document Vevtors (Document Vectors Tab) are used  to train machine learning models"), br(),
-                      tags$h2("Import Files"),br(),
+                      span(tags$h2("Import Files"),style="color:blue"),br(),
                         tags$h3("The user is able to import data from an external source, i.e. his pc. Note that the Document Term Matrix, the Word Vectors and the Term Co-occurence matrix should agree. We suggest that you experiment on an existing dataset and export these files (see next Tab) so that you will understand the appropriate format of the imported data"), br(),
-                      tags$h2("Export Files"),br(),
+                      span(tags$h2("Export Files"),style="color:blue"),br(),
                         tags$h3("The user is able to export data to an external source, i.e. his pc. We tried to give the opportunity to export every available data structure so that the users can leverage the outcoming findings/structures for meta analysis."),br(),
                       
-                      tags$h2("Thank you for using the FastTMtool, we hope that you find this guide useful. For any misunderstanding or further guidance, please commend on our repository so that we can complementary
- additional information"), br(),
+                      span(tags$h2("Thank you for using the FastTMtool, we hope that you find this guide useful. For any misunderstanding or further guidance, please commend on our repository so that we can complementary
+ additional information"),style="color:green"), br(),
                       br(),br(),br()
                       )
               
@@ -1221,10 +1236,17 @@ server <- function(input, output, session) {
     return(temp)
     })
   
+  
+  output$doc_vecs_info<-renderText("Not trained yet")
+  
   #document vectors
   model_docvec=reactiveValues(doc_vectors = NULL)
   observeEvent(input$docvec_model_build,{
     model_docvec$doc_vectors=Document_vectors(word_vectors=word_vectors_list$words,item_list_text=item_list_text,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col],split2=dataset_chosen$split2,option=dataset_chosen$output_var_type,type=input$doc_vec_model,no_dims=input$doc_vec_dims,type_words=input$type_words_doc_vec)
+    
+    model_trained_temp=switch(input$doc_vec_model,"star_model"="Starspace","ft_model"='FastText',"dan_model"="Deep Averaging Networks","CNN"="Convolutional Neural Network (CNN)","RNN"="Recurrent Neural Network (RNN)","LSTM"="Long Short Term Memory (LSTM)")
+    output$doc_vecs_info<-renderText(paste("Type:",model_trained_temp,"Number of dimensions:",ncol(model_docvec$doc_vectors)))
+    
     })
   
   
