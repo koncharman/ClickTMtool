@@ -176,9 +176,9 @@
   
   pred_list[[6]]=unlist(pred_list[[6]])
   
-  eval_list=matrix(nrow = length(reg_models_names),ncol = 5)
+  eval_list=matrix(nrow = length(reg_models_names),ncol = 4)#5
   rownames(eval_list)=reg_models_names
-  colnames(eval_list)=c("Precision","Recall","F1 score","AUC","Accuracy")
+  colnames(eval_list)=c("Precision","Recall","F1 score","Accuracy")#,"AUC"
   
   for(i in 1:length(pred_list)){
     print(i)

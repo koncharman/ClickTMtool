@@ -18,7 +18,7 @@
     
     
     acc_list[["f1"]]=F1_Score( y_true = test, y_pred = predicts,positive = 1)
-    acc_list[["auc"]]=AUC(test, predicts)
+    #acc_list[["auc"]]=AUC(test, predicts)
   }else{
     prec_list=c()
     rec_list=c()
@@ -40,7 +40,7 @@
       prec_list[i]=Precision(y_true = temp_test,y_pred = temp_predicts,positive = 1)
       rec_list[i]=Recall(y_true = temp_test,y_pred = temp_predicts,positive = 1)
       f1_list[i]=F1_Score(y_true = temp_test,y_pred = temp_predicts,positive = 1)
-      auc_list[i]=AUC(y_true = temp_test,y_pred = temp_predicts)
+      #auc_list[i]=AUC(y_true = temp_test,y_pred = temp_predicts)
       
     }
     acc_list[["precision"]]= mean(prec_list)
@@ -50,7 +50,7 @@
     
     
     acc_list[["f1"]]=mean(f1_list)
-    acc_list[["auc"]]=mean(auc_list)
+    #acc_list[["auc"]]=mean(auc_list)
   }
   
   acc_list[["accuracy"]]=Accuracy( y_true = test, y_pred = predicts)

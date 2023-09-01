@@ -94,7 +94,8 @@
       
       library(binda)
       term_doc_exist=colSums(dichotomize(tSparse[split2==T,],.Machine$double.xmin))
-      tSparse=tSparse/r_sums*log(x = length(which(split2==T))/term_doc_exist,base = 2)
+      tSparse=tSparse/r_sums
+      tSparse=t(t(tSparse)*log(x = length(which(split2==T))/term_doc_exist,base = 2))
     }
     
     item_ret[['dtm']]=tSparse
