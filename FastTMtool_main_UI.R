@@ -744,8 +744,13 @@ server <- function(input, output, session) {
       
       
     }else{
-      mylogit_mat=glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model()$document_memberships[dataset_chosen$split2==T,]),family = gaussian)
-      mylogit_mat=format(summary(mylogit_mat)$coefficients,scientific=F)
+      #mylogit_mat=glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model()$document_memberships[dataset_chosen$split2==T,]),family = gaussian)
+      #mylogit_mat=format(summary(mylogit_mat)$coefficients,scientific=F)
+      
+      mylogit_mat=cor(cbind(as.data.frame(model()$document_memberships[dataset_chosen$split2==T,]),as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col])),method="spearman")
+      colnames(mylogit_mat)[ncol(mylogit_mat)]="Target Variable"
+      rownames(mylogit_mat)=colnames(mylogit_mat)
+      
       r_names=rownames(mylogit_mat); c_names=colnames(mylogit_mat)
       mylogit_mat=matrix(as.numeric(mylogit_mat),ncol=ncol(mylogit_mat));rownames(mylogit_mat)=r_names;colnames(mylogit_mat)=c_names
       #mylogit_mat[,1]=exp(mylogit_mat[,1])
@@ -759,7 +764,7 @@ server <- function(input, output, session) {
     
     
     reg_res_cluster(),
-    caption=paste("Regression coefficients:",input$model_choice))
+    caption=paste("Coefficients:",input$model_choice))
   
   reg_res_topic=reactive({
     #colnames(model_topic()$document_memberships)=paste("Topic",c(1:ncol(model_topic()$document_memberships)))
@@ -786,8 +791,13 @@ server <- function(input, output, session) {
       mylogit_mat=as.data.frame(round(mylogit_mat,4))
       return(mylogit_mat)
     }else{
-      mylogit = glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model_topic()$document_memberships[dataset_chosen$split2==T,]),family = gaussian)#(link = "logit")
-      mylogit_mat=summary(mylogit)$coefficients
+      #mylogit = glm(formula = as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col]) ~., data = as.data.frame(model_topic()$document_memberships[dataset_chosen$split2==T,]),family = gaussian)#(link = "logit")
+      #mylogit_mat=summary(mylogit)$coefficients
+      
+      mylogit_mat=cor(cbind(as.data.frame(model_topic()$document_memberships[dataset_chosen$split2==T,]),as.numeric(dataset_chosen$main_matrix[dataset_chosen$split2==T,dataset_chosen$class_col])),method="spearman")
+      colnames(mylogit_mat)[ncol(mylogit_mat)]="Target Variable"
+      rownames(mylogit_mat)=colnames(mylogit_mat)
+      
       mylogit_mat=round(mylogit_mat,4)
       return(mylogit_mat)
     }
@@ -798,7 +808,7 @@ server <- function(input, output, session) {
   output$reg_table_topic<-renderDataTable(
     
     reg_res_topic(),
-    caption=paste("Regression coefficients:",input$topic_model_choice))
+    caption=paste("Coefficients:",input$topic_model_choice))
   
   
   output$main_plot_topic <- renderPlot({
