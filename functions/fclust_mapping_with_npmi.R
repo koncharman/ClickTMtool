@@ -131,7 +131,8 @@
     #geom_mark_hull(aes(fill = Cluster,label=as.factor(Cluster)),concavity = 5) +
     #geom_text_repel(max.overlaps = 50)+
     labs(colour="Cluster",x="x",y="y")+
-    ggtitle("Cluster Plot")
+    ggtitle("Cluster Plot")+
+    theme_solarized_2(light = F)
   
   
   ppl=ggplot( data = as.data.frame(word_vectors[pos,]),mapping = aes(x, y,colour = Cluster,label = rownames(word_vectors[pos,]))) +
@@ -141,7 +142,8 @@
     labs(colour="Cluster",x="x",y="y")+
     ggtitle(paste("Fuzzy k-means Clustering Plot NPMI:",max_coh,"Topic Divergence (Top terms):",td,"Topic Divergence (All Terms):",td_all))+
     xlim(c(min(word_vectors[pos,1])-1,max(word_vectors[pos,1])+1))+
-    ylim(c(min(word_vectors[pos,2])-1,max(word_vectors[pos,2])+1))
+    ylim(c(min(word_vectors[pos,2])-1,max(word_vectors[pos,2])+1))+
+    theme_solarized_2(light = F)
   
  
   
@@ -267,7 +269,8 @@
       geom_mark_ellipse(aes(fill = Cluster,label=as.factor(Cluster))) +
       #geom_text_repel(max.overlaps = 50)+
       labs(colour="Cluster",x="x",y="y")+
-      ggtitle("Cluster Plot")
+      ggtitle("Cluster Plot")+
+      theme_solarized_2(light = F)
     
     
     ppl=ggplot( data = as.data.frame(word_vectors[pos,]),mapping = aes(x, y,colour = Cluster,label = rownames(word_vectors[pos,]))) +
@@ -276,8 +279,8 @@
       labs(colour="Cluster",x="x",y="y")+
       ggtitle(paste("Gaussian Mixture Models Clustering Plot NPMI:",max_coh,"Topic Divergence (Top terms):",td,"Topic Divergence (All terms):",td_all))+
       xlim(c(min(word_vectors[pos,1])-1,max(word_vectors[pos,1])+1))+
-      ylim(c(min(word_vectors[pos,2])-1,max(word_vectors[pos,2])+1))
-    
+      ylim(c(min(word_vectors[pos,2])-1,max(word_vectors[pos,2])+1))+
+      theme_solarized_2(light = F)
     
     
   
@@ -558,7 +561,8 @@
     ggtitle(paste("II threshold:",ii_thres_final,"Resolution Parameter:",rp_final,"No clusters:",l_clust_final$nb_clusters,"NPMI coherence:",max_coh,"Topic Divergence (Top terms):",td))+
     geom_segment(data=g_matrix,aes(x=from.x,xend = to.x, y=from.y,yend = to.y),colour="black") + #size="weight"
     geom_point(data=all_df,aes(x=V1,y=V2),size=5,colour=(palete_col[as.numeric(all_df$cluster)+1])) +
-    geom_text(data=all_df,aes(x=as.numeric(V1),y=as.numeric(V2),label=paste(all_df$cluster,all_df$label)))
+    geom_text(data=all_df,aes(x=as.numeric(V1),y=as.numeric(V2),label=paste(all_df$cluster,all_df$label)))+
+      theme_solarized_2(light = F)
       
     
     print(table(token_memberships_all_final))

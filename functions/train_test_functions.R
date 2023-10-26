@@ -35,6 +35,7 @@
     
   }
 }
+ 
   colnames(new2_trainSparse)[ncol(new2_trainSparse)]="Exploit_output"
   colnames(new2_testSparse)=colnames(new2_trainSparse)
   #
@@ -69,8 +70,8 @@
   
   reg_models_names=c("Generalized Linear Models",
                      "Gradient Boosting Machines",
-                     "RANDOM FOREST",
-                     "Naive bayes",
+                     "Random Forest",
+                     #"Naive bayes",
                      #"eXtreme Gradient Boosting",
                      "Deep Learning",
                      
@@ -102,12 +103,12 @@
       pred_list[[k]]=pred_list[[k]][-1]
     }
     
-    k=k+1
-    model <- h2o.naiveBayes(y = y_pos, x = x_pos, training_frame =new2_trainSparse,seed = 831)
-    pred_list[[k]]=as.vector(h2o.predict(object = model,newdata=new2_testSparse)$predict)
-    if(length(pred_list[[k]])!=nrow(new2_testSparse)){
-      pred_list[[k]]=pred_list[[k]][-1]
-    }
+    #k=k+1
+    #model <- h2o.naiveBayes(y = y_pos, x = x_pos, training_frame =new2_trainSparse,seed = 831)
+    #pred_list[[k]]=as.vector(h2o.predict(object = model,newdata=new2_testSparse)$predict)
+    #if(length(pred_list[[k]])!=nrow(new2_testSparse)){
+    #  pred_list[[k]]=pred_list[[k]][-1]
+    #}
     
     k=k+1
     model <- h2o.deeplearning(x=x_pos,y = y_pos,reproducible = T,activation = "Tanh",
@@ -142,12 +143,12 @@
       pred_list[[k]]=pred_list[[k]][-1]
     }
     
-    k=k+1
-    model <- h2o.naiveBayes(y = y_pos, x = x_pos, training_frame =new2_trainSparse,seed = 831,balance_classes =F)
-    pred_list[[k]]=as.vector(h2o.predict(object = model,newdata=new2_testSparse)$predict)
-    if(length(pred_list[[k]])!=nrow(new2_testSparse)){
-      pred_list[[k]]=pred_list[[k]][-1]
-    }
+    #k=k+1
+    #model <- h2o.naiveBayes(y = y_pos, x = x_pos, training_frame =new2_trainSparse,seed = 831,balance_classes =F)
+    #pred_list[[k]]=as.vector(h2o.predict(object = model,newdata=new2_testSparse)$predict)
+    #if(length(pred_list[[k]])!=nrow(new2_testSparse)){
+    #  pred_list[[k]]=pred_list[[k]][-1]
+    #}
     
     k=k+1
     model <- h2o.deeplearning(x=x_pos,y = y_pos,reproducible = T,activation = "Tanh",
@@ -162,19 +163,24 @@
     }
   }
   
+  Mode <- function(x) {
+    ux <- unique(x)
+    ux[which.max(tabulate(match(x, ux)))]
+  }
+  
  
   k=k+1
-  pred_list[[6]]=list()
+  pred_list[[k]]=list()
   
   for(i in 1:nrow(new2_testSparse)){
     temp=c()
     for(j in 1:(length(reg_models_names)-1)){
       temp[j]=pred_list[[j]][i]
     }
-    pred_list[[6]][i]=median(temp)
+    pred_list[[k]][i]=Mode(temp)
   }
   
-  pred_list[[6]]=unlist(pred_list[[6]])
+  pred_list[[k]]=unlist(pred_list[[k]])
   
   eval_list=matrix(nrow = length(reg_models_names),ncol = 4)#5
   rownames(eval_list)=reg_models_names

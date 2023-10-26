@@ -59,8 +59,8 @@
   
   if(ret_dtm){
     
-    min_doc=length(all_set_text)*min_doc_r # 0.1 0.002 *
-    max_doc=length(all_set_text)*max_doc_r # 0.05 0.5 *
+    min_doc=length(all_set_text[split2])*min_doc_r # 0.1 0.002 *
+    max_doc=length(all_set_text[split2])*max_doc_r # 0.05 0.5 *
     
     frequencies=DocumentTermMatrix(corpus[split2==T], control = list(bounds = list(global = c(min_doc, max_doc))))
     

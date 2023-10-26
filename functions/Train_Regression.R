@@ -36,7 +36,7 @@
   
   reg_models_names=c("Generalized Linear Models",
                      "Gradient Boosting Machines",
-                     "RANDOM FOREST",
+                     "Random Forest",
                      #"Naive bayes",
                      #"eXtreme Gradient Boosting",
                      "Deep Learning",
@@ -98,9 +98,9 @@
   
   for(i in 1:length(pred_list)){
     print(i)
-    eval_list[i,1]=RMSE(y_pred = pred_list[[i]],y_true = as.numeric(categories_assignement[split2==F]))
-    eval_list[i,2]=MAE(y_pred = pred_list[[i]],y_true = as.numeric(categories_assignement[split2==F]))
-    eval_list[i,3]=R2_Score(y_pred = pred_list[[i]],y_true = as.numeric(categories_assignement[split2==F]))
+    eval_list[i,1]=MLmetrics::RMSE(y_pred = pred_list[[i]],y_true = as.numeric(categories_assignement[split2==F]))
+    eval_list[i,2]=MLmetrics::MAE(y_pred = pred_list[[i]],y_true = as.numeric(categories_assignement[split2==F]))
+    eval_list[i,3]=MLmetrics::R2_Score(y_pred = pred_list[[i]],y_true = as.numeric(categories_assignement[split2==F]))
     
   }
   
