@@ -13,6 +13,9 @@ library(shinydashboard)
 library(shinyWidgets)
 library(nnet)
 library(shinythemes)
+library(ggthemes)
+library(hrbrthemes)
+library(plotly)
 
 set.seed(831)
 
@@ -47,12 +50,23 @@ word_vectors_list=NULL
 ui <- fluidPage(
   
   #setBackgroundColor(color = c("#C8A8D1", "#FFB6B6"),gradient = "linear",direction = c("top", "left")),
-  setBackgroundColor(color = c("#5974A4","#FFFFFF"),gradient = "linear",direction = c("top", "left")),
+  #setBackgroundColor(color = c("#5974A4","#FFFFFF"),gradient = "linear",direction = c("top", "left")),
+  setBackgroundColor(color = c("black","black"),gradient = "linear",direction = c("top", "left")),
+  
   
   #5974A4
   tags$head(tags$style(
     HTML('
          #sidebar {
+            background-color: #5974A4;
+            
+        }
+         
+         '))),
+  #5974A4
+  tags$head(tags$style(
+    HTML('
+         #wellpanel {
             background-color: #5974A4;
             
         }
@@ -68,8 +82,8 @@ ui <- fluidPage(
              title="", collapsible = TRUE,
               tabPanel("File",
                        
-                       sidebarLayout( 
-                         sidebarPanel(id="sidebar",
+                       
+                         wellPanel(id="wellpanel",
                            
                            ##complete file and variables assesmment
                            tags$h2(tags$strong("Import Data")),
@@ -112,7 +126,7 @@ ui <- fluidPage(
                            tableOutput("extra_var_display"),
                            
                            ),
-                       mainPanel(
+                       
                          
                          
                          #Visualization of the imported data
@@ -127,16 +141,16 @@ ui <- fluidPage(
                          
                          
                         
-                       )
-                         ),
+                       
+                         
                        #Bar plot of the target variable
-                       plotOutput(outputId = "variable_plot"),
+                       plotlyOutput(outputId = "variable_plot"),
                        #Bar plots of the extra variables
                        uiOutput("extra_var_plots")
                        ),
               tabPanel("Text Preprocessing",
-                       sidebarLayout( 
-                         sidebarPanel(id="sidebar",
+                       
+                         wellPanel(id="wellpanel",
                            ##complete text preprocessing
                            
                            #Bag of Words or TF-IDF
@@ -183,10 +197,10 @@ ui <- fluidPage(
                            
                            actionButton(inputId = "vector_build",label = "Build word representations"),
                            
-                           
-                           
                          ),
-                         mainPanel(
+                           
+                         
+                         
                            #Output indicating the finalization of word vectors
                            tags$h2(tags$b("Information of word representations")),
                            
@@ -202,12 +216,12 @@ ui <- fluidPage(
                            
                            numericInput(inputId = "word_bar_plot_no_items",label = "Number of Words",value = 20,min = 2),
                            br(),
-                           plotOutput(outputId = "word_barplot"),
+                           plotlyOutput(outputId = "word_barplot"),
                            br(),
-                           br()
+                           br(),
                            
-                         )
-                       ),
+                         
+                       
                        #Wordcloud
                       
                        tags$h2(tags$b("Wordcloud")),
@@ -218,12 +232,12 @@ ui <- fluidPage(
                        wordcloud2Output("word_cloud")
                        ),
               tabPanel("Feature Selection",
-                       sidebarLayout( 
-                         sidebarPanel(id="sidebar",
+                        
+                         wellPanel(id="wellpanel",
                            tags$h2(tags$strong("Feature Evaluation and Selection Options")),
                            
                            #Feature evaluation options
-                           selectizeInput(inputId = "matrix_feature_evaluation",label="Select Matrix for feature evaluation",choices = list("Document term matrix"="dtm_mf","Document term matrix (dichotomized)"="dtmd_mf")),
+                           selectizeInput(inputId = "matrix_feature_evaluation",label="Select Matrix for feature evaluation",choices = list("Document Term Matrix"="dtm_mf","Document Term Matrix (dichotomized)"="dtmd_mf")),
                            selectizeInput(inputId = "method_feature_evaluation",label="Method for feature evaluation",choices = list(
                              "JIM" = "jim_ff", #new
                              "JMIM"="jmim_ff",
@@ -250,14 +264,15 @@ ui <- fluidPage(
                            
                          ),
                          #Feature evaluation output
-                         mainPanel(
+                         
                            dataTableOutput(outputId = "feature_table")
-                         )
-                       ) 
+                         
+                       
                        ),
+  
               tabPanel("Word Clustering",
-                       sidebarLayout( 
-                         sidebarPanel(id="sidebar",
+                        
+                       wellPanel(id="wellpanel",
                            ##build model
                            tags$h2(tags$strong("Keyword Clustering Options")),
                            
@@ -286,32 +301,36 @@ ui <- fluidPage(
                            actionButton(inputId = "model_build",label = "Build model"),
                            
                          ),
-                         mainPanel(
+                         
+                           
+                       plotlyOutput(outputId = 'no_clust_eval'),
+                       
+                           
+                       #Top terms per cluster
+                       dataTableOutput(outputId = "main_clust_keyword_table"),
                            
                            
-                           #Top terms per cluster
-                           dataTableOutput(outputId = "main_clust_keyword_table")
-                           
-                           
-                         )
-                       ),
+                         
+                       
                        
                        #Full view or short view (top terms) of the extracted clusters. Short view is not availablewhen the approach that is based on the Leiden algorithm is selected.  
                        conditionalPanel("input.model_choice != 'leiden'",selectizeInput(inputId = "main_plot_topic_view",label="Cluster view",choices=list("Top words View"="top_words_view","Full View"="full_view"))),
                        br(),
                        #Main visualization of words and clusters
-                       plotOutput(outputId = "main_plot_topic"),
+                       plotOutput(outputId = "main_plot_topic",height = 1000),
                        
                        #Visualization of topic divergence and prevalence, based on LDAvis
-                       visOutput(outputId = "topic_vis_plot_clust"),
+                      wellPanel(id="sidebar", visOutput(outputId = "topic_vis_plot_clust")),
                        
                        #Results of a Generalized Linear Model using the topic memberships of the documents as independent variables and the target variable, selected in the File Tab, as the dependent variable.
                        selectizeInput(inputId = "multinomial_reg_value_clust",label="Reference Class on Multinomial Logistic Regression",choices = list()),
                        dataTableOutput(outputId = "reg_table_clust")
                        ),
+  
+  
               tabPanel("Topic Modelling",
-                       sidebarLayout( 
-                         sidebarPanel(id="sidebar",
+                        
+                       wellPanel(id="wellpanel",
                            #Build topic model
                            tags$h2(tags$strong("Topic Modelling Options")),
                            #Available alternatives of topic modelling algorithms
@@ -332,23 +351,23 @@ ui <- fluidPage(
                            fluidRow(column(width = 4,offset = 0,actionButton(inputId = "topic_model_build",label = "Build topic model"))),
                            
                          ),
-                         mainPanel(
+                         
                            #Top terms per topic
-                           dataTableOutput(outputId = "main_topic_keyword_table")
+                           dataTableOutput(outputId = "main_topic_keyword_table"),
                           
                            
-                         )
-                       ),
+                         
+                       
                        #Visualization of topic divergence and prevalence, based on LDAvis
-                       visOutput(outputId = "topic_vis_plot"),
+                       wellPanel(id="sidebar",visOutput(outputId = "topic_vis_plot")),
                        #Results of a Generalized Linear Model using the topic memberships of the documents as independent variables and the target variable, selected in the File Tab, as the dependent variable.
                        selectizeInput(inputId = "multinomial_reg_value_topic",label="Reference Class on Multinomial Logistic Regression",choices = list()),
                        
                        dataTableOutput(outputId = "reg_table_topic")
                         ),
               tabPanel("Document Vectors",
-                       sidebarLayout( 
-                         sidebarPanel(id="sidebar",
+                       
+                       wellPanel(id="wellpanel",
                            #Building Document vectors mostly based on different neural network architectures
                            tags$h2(tags$strong("Document Vector Options")),
                            
@@ -362,16 +381,16 @@ ui <- fluidPage(
                            fluidRow(column(width = 4,offset = 0,actionButton(inputId = "docvec_model_build",label = "Build Document Vectors"))),
 
                          ),
-                         mainPanel(
+                         
                            #Maybe add some Information in the next update
                            tags$h2(tags$strong("Trained Document Vectors")),
                            textOutput("doc_vecs_info")
-                         )
-                       )
+                         
+                       
               ),
               tabPanel("Prediction Models",
-                       sidebarLayout( 
-                         sidebarPanel(id="sidebar",
+                        
+                         wellPanel(id="sidebar",
                            tags$h2(tags$strong("Prediction Model Options")),
                            
                            ##Classification and Regression Options
@@ -389,12 +408,20 @@ ui <- fluidPage(
                            actionButton(inputId = "classification_w_p",label = "Classification with properties"),
                            
                          ),
-                         mainPanel(
+                         
                            #Visualization of Classification and Regression performance measures
                            dataTableOutput(outputId = "train_acc"),
-                           
-                         )
+                       selectizeInput(inputId = "opt_model",label="Select Machine Learning Model",
+                                      choices=list("Generalized Linear Models"="glm","Random Forest"="rf","
+                                           Gradient Boosting Machines"="gbm","Deep Learning"="dl",
+                                                   "Ensemble (Median)"="ens_m")),
+                       
+                       box(title = "Model performance",width = NULL,solidHeader = TRUE,status = 'info',
+                           plotlyOutput(outputId = "ml_plt"),
                        )
+                       
+                         
+                       
               ),
              
              tabPanel("Import Files",
@@ -613,8 +640,10 @@ server <- function(input, output, session) {
   
   
   
+  
   output$Document_ratio_title<- renderText({
     "Keyword-Document frequency ratio"
+    
   })
   
   
@@ -645,49 +674,64 @@ server <- function(input, output, session) {
     rownames(df_temp)=NULL
     return(df_temp)})
   
-  output$variable_plot<-renderPlot({
+  output$variable_plot<-renderPlotly({
 
     df=data.frame(dataset_chosen$main_matrix[,dataset_chosen$class_col])
     colnames(df)="class_col"
-    return(ggplot(df, aes(x=class_col))+
+    return(
+      ggplotly(
+        ggplot(df, aes(x=class_col))+
              geom_histogram(color="darkblue", fill="lightblue") +
-             ggtitle("Target variable frequencies")) 
+             ggtitle("Target variable frequencies")+
+             theme_solarized_2(light = F)) 
+    )
   })
   
   
   
   output$extra_var_plots <- renderUI({
-    tagList(
-      
-      lapply(1:length(extra_vars$extra_var_names),
-             function(i) {
-               renderPlot({
+    if(length(extra_vars$extra_var_names)>0){
+      tagList(
         
-                 df=data.frame(dataset_chosen$main_matrix[,extra_vars$extra_var_names[i]])
-                 colnames(df)="class_col"
-                 return(ggplot(df, aes(x=class_col))+
-                          geom_histogram(color="darkblue", fill="lightblue")+
-                          ggtitle(paste(extra_vars$extra_var_names[i],"frequencies"))) 
-               
-                 
-               })
-             }
+        lapply(1:length(extra_vars$extra_var_names),
+               function(i) {
+                 renderPlotly({
+                   
+                   df=data.frame(dataset_chosen$main_matrix[,extra_vars$extra_var_names[i]])
+                   colnames(df)="class_col"
+                   return(
+                     ggplotly(
+                       ggplot(df, aes(x=class_col))+
+                         geom_histogram(color="darkblue", fill="lightblue")+
+                         ggtitle(paste(extra_vars$extra_var_names[i],"frequencies"))+
+                         theme_solarized_2(light = F)) 
+                   )
+                   
+                 })
+               }
+        )
       )
-    )
+    }
+    
   })
   
-  output$word_barplot<-renderPlot({
+  output$word_barplot<-renderPlotly({
    
     col_sums_all=diag(item_list_text$tcm)
     order_csa=order(col_sums_all,decreasing = T)
     
     DF=data.frame("Words"=names(col_sums_all[order_csa[1:input$word_bar_plot_no_items]]),"Occurences"=col_sums_all[order_csa[1:input$word_bar_plot_no_items]])
-    p=ggplot(DF, aes(Words, Occurences)) +               
+    p=
+      ggplotly(
+      ggplot(DF, aes(Words, Occurences)) +               
       theme(text = element_text(size = 20))+
       theme(axis.text.x = element_text(angle = 90))+
       geom_bar(stat = "identity", fill = "lightblue", color = "blue")+
       scale_x_discrete(limits = names(col_sums_all[order_csa[1:input$word_bar_plot_no_items]]))+
-      ggtitle("Keyword - Document Occurence (Train Set)")
+      ggtitle("Keyword - Document Occurence (Train Set)")+
+      theme_solarized_2(light = F)+
+        theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+      )
     return(p)
     
   })
@@ -826,8 +870,54 @@ server <- function(input, output, session) {
   
   output$main_clust_keyword_table<-renderDataTable(model()$top_terms,caption="Top Words Data")#
   
-  
 
+  
+  
+  output$no_clust_eval<-renderPlotly({
+    if(!is.null(model()$f_clust)|!is.null(model()$m_clust)){
+      if((clust_no_range$max- clust_no_range$min) >0){
+        
+      
+    
+    max_topics_l=clust_no_range$max- clust_no_range$min+1
+    
+    ev_1=unlist(model()$coherence_npmi)[clust_no_range$min:clust_no_range$max]
+    ev_2=unlist(model()$topic_divergence_list)[clust_no_range$min:clust_no_range$max]
+    ev_3=unlist(model()$topic_divergence_all_list)[clust_no_range$min:clust_no_range$max]
+    
+    a=ev_1+ev_2+ev_3
+    
+    
+    df=data.frame("Type"=c(rep("Coherence",max_topics_l),rep("Topic_Divergence",max_topics_l),rep("Topic_Divergence_ALL",max_topics_l),rep("SUM",max_topics_l)),
+                  "Eval"=c(ev_1,ev_2,ev_3,a),
+                  "No_topics"=c(clust_no_range$min:clust_no_range$max,clust_no_range$min:clust_no_range$max,clust_no_range$min:clust_no_range$max,clust_no_range$min:clust_no_range$max))
+
+    
+    library(ggplot2)
+    library(plotly)
+    library(ggthemes)
+    ggplotly(ggplot(data=df, aes(x=No_topics, y=Eval, group=Type)) +
+               geom_line(aes(color=Type))+
+               geom_point(aes(color=Type))+
+               theme(
+                 panel.background = element_rect(fill = "white",
+                                                 colour = "lightblue",
+                                                 size = 0.5, linetype = "solid"),
+                 panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                                 colour = "lightgrey"), 
+                 panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                                 colour = "lightgrey")
+               )+
+               ggtitle("Evaluation of different numbers of clusters/topics")+
+               xlab("Number of Clusters")+
+               ylab("Evaluation")+
+               theme_solarized_2(light = F)
+    )
+    
+      }
+    
+    }
+  })
   
   
   
@@ -839,7 +929,33 @@ server <- function(input, output, session) {
     class_predictions_acc()$eval_list,
     caption="Models' Prediction Performance")
   
- 
+  sel_ml_model<-reactive({
+    return(input$opt_model)
+  })
+  
+  output$ml_plt<-renderPlotly({
+    temp_pos=switch(sel_ml_model(),'glm'=1,'gbm'=2,'rf'=3,'dl'=4,"ens_m"=5)
+    temp=data.frame("metric"=colnames( class_predictions_acc()$eval_list),"value"=unlist( class_predictions_acc()$eval_list[temp_pos,]))
+    
+    
+    
+    
+    return(
+      ggplotly(ggplot(temp, aes(x=metric, y=value)) +
+                 geom_segment( aes(xend=metric, yend=0),color="purple") +
+                 geom_point( size=4, color="orange") +
+                 coord_flip() +
+                 scale_color_viridis_d(option = "plasma", direction = 1) +
+                 hrbrthemes::theme_ft_rc() +
+                 xlab("")+
+                 ylab("Performance metrics")
+               
+      )
+      
+      
+    )
+    
+  })
   
   output$topic_vis_plot_clust<- renderVis({
     model()$topic_vis
@@ -868,7 +984,11 @@ server <- function(input, output, session) {
       
     }
     
-    
+    #extra_vars=reactiveValues(extra_var_names=c(),extra_var_nom_con=c(),table_extra_var=NULL)
+
+    extra_vars$extra_var_names=c()
+    extra_vars$extra_var_nom_con=c()
+    extra_vars$table_extra_var=NULL
     
     updateSelectizeInput(inputId = "extra_var_col",choices = colnames(dataset_chosen$main_matrix))
     
@@ -1063,9 +1183,13 @@ server <- function(input, output, session) {
   
   
   output$extra_var_display <- renderTable({
+    if(length(extra_vars$extra_var_names)>0){
+      
     temp_table=cbind(extra_vars$extra_var_names,extra_vars$extra_var_nom_con)
     colnames(temp_table)=c("Variable name","Variable type")
+    
     return(temp_table)
+    }
     })
   
   
@@ -1222,19 +1346,30 @@ server <- function(input, output, session) {
     })
   
   #topic model from clustering approaches
+  clust_no_range=reactiveValues(min=NULL,max=NULL)
+  
+  
   model<-eventReactive(input$model_build,{
     if(input$model_choice=="f_clust"){
-      return(fclust_mapping_with_npmi(word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,l=input$num_top_c,type = "fclust",tcm = item_list_text$tcm,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
+      temp=(fclust_mapping_with_npmi(word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,l=input$num_top_c,type = "fclust",tcm = item_list_text$tcm,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
     }else if(input$model_choice=="m_clust"){
-      return(fclust_mapping_with_npmi(word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,l=input$num_top_c,type = "mclust",tcm = item_list_text$tcm,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
+      temp=(fclust_mapping_with_npmi(word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,l=input$num_top_c,type = "mclust",tcm = item_list_text$tcm,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
       
     }else if(input$model_choice=="leiden"){
       ii_cond=ifelse(input$leiden_features=="word_simil",yes=T,no=F)
       ii_or_rev=ifelse(input$ii_or_rev_ii=='rev_ii_choice',yes=T,no=F)
-      return(fclust_mapping_with_npmi(word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,l=input$num_top_c,type = "leiden",tcm = item_list_text$tcm,glove_leiden=ii_cond,ii_rev=ii_or_rev,stand_leiden_words_mem = input$stand_leiden_words_mem,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
+      temp=(fclust_mapping_with_npmi(word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,l=input$num_top_c,type = "leiden",tcm = item_list_text$tcm,glove_leiden=ii_cond,ii_rev=ii_or_rev,stand_leiden_words_mem = input$stand_leiden_words_mem,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
       
     }
-  })
+    colnames(temp$document_memberships)=paste("Cluster",c(1:ncol(temp$document_memberships)))
+    colnames(temp$top_terms)=paste("Cluster",c(1:ncol(temp$top_terms)))
+    
+    clust_no_range$min=input$min_num_top_c
+    clust_no_range$max=input$max_num_top_c
+    
+    
+    return(temp)
+    })
   
   #topic modelling alternatives
   model_topic<-eventReactive(input$topic_model_build,{
@@ -1255,7 +1390,7 @@ server <- function(input, output, session) {
     model_docvec$doc_vectors=Document_vectors(word_vectors=word_vectors_list$words,item_list_text=item_list_text,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col],split2=dataset_chosen$split2,option=dataset_chosen$output_var_type,type=input$doc_vec_model,no_dims=input$doc_vec_dims,type_words=input$type_words_doc_vec)
     
     model_trained_temp=switch(input$doc_vec_model,"star_model"="Starspace","ft_model"='FastText',"dan_model"="Deep Averaging Networks","CNN"="Convolutional Neural Network (CNN)","RNN"="Recurrent Neural Network (RNN)","LSTM"="Long Short Term Memory (LSTM)")
-    output$doc_vecs_info<-renderText(paste("Type:",model_trained_temp,"Number of dimensions:",ncol(model_docvec$doc_vectors)))
+    output$doc_vecs_info<-renderText(paste("Type:",model_trained_temp,", Number of dimensions:",ncol(model_docvec$doc_vectors)))
     
     })
   
@@ -1267,9 +1402,12 @@ server <- function(input, output, session) {
       dataset_chosen$split2=sample.split(dataset_chosen$main_matrix[,dataset_chosen$class_col],SplitRatio=0.7)
       
     }else{
-      temp_sample=sample(nrow(dataset_chosen$main_matrix),0.7*nrow(dataset_chosen$main_matrix))
+      library(caret)
+      temp_sample= createDataPartition(dataset_chosen$main_matrix[,dataset_chosen$class_col], p = .7, 
+                                        list = FALSE, 
+                                        times = 2) 
       dataset_chosen$split2=rep(F,nrow(dataset_chosen$main_matrix))
-      dataset_chosen$split2[temp_sample]=T
+      dataset_chosen$split2[temp_sample[,1]]=T
     }
     
   })
