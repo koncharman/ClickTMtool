@@ -118,9 +118,9 @@ Where the directory is the same of the JDK installation.
 ### Package installations
 Next download the ClickTMtool from the github repository. In this guide we unzipped the folder into the directory D:/ClickTMtool. Now open Rstudio and type the following scripts.
 
-#Install Devtools
-Useful Link: https://www.r-project.org/nosvn/pandoc/devtools.html
-For windows users run the following script in your envirnoment: install.packages("devtools")
+#Install Devtools Useful Link: https://www.r-project.org/nosvn/pandoc/devtools.html
+#For windows users run the following script in your envirnoment: 
+install.packages("devtools")
 
 #Path of ClickTMtool in your machine
 
