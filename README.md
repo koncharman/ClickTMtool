@@ -118,6 +118,8 @@ Where the directory is the same of the JDK installation.
 ### Package installations
 Next download the ClickTMtool from the github repository. In this guide we unzipped the folder into the directory D:/ClickTMtool. Now open Rstudio and type the following scripts.
 
+#If any of the following package installation take too much and returns you an installation timeout error you can use the following command to increase the timeout limit: options(timeout = max(40000, getOption("timeout")))
+
 #Install Devtools Useful Link: https://www.r-project.org/nosvn/pandoc/devtools.html
 #For windows users run the following script in your envirnoment: 
 install.packages("devtools")
