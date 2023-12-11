@@ -122,6 +122,8 @@ Next download the ClickTMtool from the github repository. In this guide we unzip
 #For windows users run the following script in your envirnoment: 
 install.packages("devtools")
 
+#Install Rtools, useful link: https://cran.r-project.org/bin/windows/Rtools/
+
 #Path of ClickTMtool in your machine
 
 setwd("D:/ClickTMtool/ClickTMtool-main/ClickTMtool-main/") 
