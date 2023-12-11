@@ -73,7 +73,16 @@ ui <- fluidPage(
          
          '))),
   
-  titlePanel(title = "Welcome to FastTMtool",windowTitle = "FTMT" ),
+  tags$head(tags$style(
+    HTML('
+         #topicvis {
+            background-color: #C8A8D1;
+            
+        }
+         
+         '))),
+  
+  titlePanel(title = "Welcome to ClickTMtool",windowTitle = "CTMT" ),
   #tabsetPanel(type = "tabs",
   #navlistPanel("Navigation List",
   #navbarMenu("Navigation Menu",
@@ -144,8 +153,9 @@ ui <- fluidPage(
                        
                          
                        #Bar plot of the target variable
-                       plotlyOutput(outputId = "variable_plot"),
+                       plotlyOutput(outputId = "variable_plot",height = 500),
                        #Bar plots of the extra variables
+                       tags$h2(tags$strong("Extra Variable Frequencies")),
                        uiOutput("extra_var_plots")
                        ),
               tabPanel("Text Preprocessing",
@@ -179,8 +189,8 @@ ui <- fluidPage(
                            #build word vectors
                            HTML(paste("<h3 style='font-weight: bold'>","Word Representation Options","</h3>",sep="")),
                            
-                           selectizeInput(inputId = "vector_choice",label="Select word vectors",choices = list("GloVe full binary coocurence"="glove_tcm","GloVe full coocurence"="glove_tcm_full","GloVe skipgram"="glove_skip","TCM standarized"="tcm_stand","TCM inclusion index"="tcm_ii","TCM reverse inclusion index"="tcm_rev_ii","Term existence"="tdm_te","Spearman correlation coefficient on Term existence matrix"="spearman_word_corr","Word2vec (Skipgram)"="word2vec_skipgram","Word2vec (CBOW)"="word2vec_cbow")),
-                           conditionalPanel("input.vector_choice!='tdm_te' &&  input.vector_choice!= 'spearman_word_corr' && input.vector_choice!='tcm_stand' && input.vector_choice!='tcm_rev_ii' && input.vector_choice!='tcm_ii'",numericInput(inputId = "vector_size",label = "Vector size",value = 50,min = 1)),
+                           selectizeInput(inputId = "vector_choice",label="Select word vectors",choices = list("GloVe full binary coocurence"="glove_tcm","GloVe full coocurence"="glove_tcm_full","GloVe skipgram"="glove_skip","TCM standarized"="tcm_stand","TCM Inclusion Index"="tcm_ii","TCM reverse Inclusion Index"="tcm_rev_ii","TCM Jaccard similarity coefficient"="tcm_ji","TCM Equivalence Index"="tcm_ei","Term existence"="tdm_te","Spearman correlation coefficient on Term existence matrix"="spearman_word_corr","Word2vec (Skipgram)"="word2vec_skipgram","Word2vec (CBOW)"="word2vec_cbow")),
+                           conditionalPanel("input.vector_choice!='tdm_te' &&  input.vector_choice!= 'spearman_word_corr' && input.vector_choice!='tcm_stand' && input.vector_choice!='tcm_rev_ii' && input.vector_choice!='tcm_ii' && input.vector_choice!='tcm_ji' && input.vector_choice!='tcm_ei' ",numericInput(inputId = "vector_size",label = "Vector size",value = 50,min = 1)),
                            fluidRow(column(width = 6,offset = 0,checkboxInput(inputId = "auto_enc",label="Apply auto encoder")),column(width = 6,offset = 0,numericInput(inputId = "auto_enc_dim",label = "Number of Dimensions",value = 20,min = 2))),
                            
                            
@@ -216,7 +226,7 @@ ui <- fluidPage(
                            
                            numericInput(inputId = "word_bar_plot_no_items",label = "Number of Words",value = 20,min = 2),
                            br(),
-                           plotlyOutput(outputId = "word_barplot"),
+                           plotlyOutput(outputId = "word_barplot",height = 1000),
                            br(),
                            br(),
                            
@@ -229,7 +239,7 @@ ui <- fluidPage(
                        fluidRow(column(width = 6,offset = 0,selectizeInput(inputId = "word_cloud_shape",label="Word Cloud Shape",choices = list("Circle"="circle","Cardioid"="cardioid","Diamond"="diamond","Triange-Forward"="triangle-forward","Triangle"="triangle","Pentagon"="pentagon","Star"="star"))),column(width = 6,offset = 0,numericInput(inputId = "word_cloud_no_items",label = "Number of Words",value = 20,min = 2))),
                        
                        br(),
-                       wordcloud2Output("word_cloud")
+                       wordcloud2Output("word_cloud",height = 1000)
                        ),
               tabPanel("Feature Selection",
                         
@@ -280,8 +290,8 @@ ui <- fluidPage(
                            selectizeInput(inputId = "model_choice",label="Select model",choices = list("Fuzzy K-means Clustering"="f_clust","Gaussian Mixtures model based clustering"="m_clust","Graph Clustering Using the Leiden Algorithm"="leiden")),
                            
                            #Additional options for the approach that is based on the Leiden algorithm
-                           conditionalPanel(condition = "input.model_choice == 'leiden'",radioButtons(inputId = "leiden_features",label="Clustering Features",choices = list("Word Vectors"="word_simil","Inclusion Index similarity"="II_simil"))),
-                           conditionalPanel(condition = "input.model_choice == 'leiden' && input.leiden_features == 'II_simil'",radioButtons(inputId = "ii_or_rev_ii",label = "Inclusion index choices",choices=list("Inclusion Index"="ii_choice","Reverse Inclusion Index"="rev_ii_choice"),selected = "ii_choice")),
+                           conditionalPanel(condition = "input.model_choice == 'leiden'",radioButtons(inputId = "leiden_features",label="Clustering Features",choices = list("Word Vectors"="word_simil","Word similarity measures"="II_simil"))),
+                           conditionalPanel(condition = "input.model_choice == 'leiden' && input.leiden_features == 'II_simil'",radioButtons(inputId = "sim_option",label = "Word similarity options",choices=list("Inclusion Index"="ii_choice","Reverse Inclusion Index"="rev_ii_choice","Jaccard similarity coefficient"="ji_choice","Equivalence Index"="ei_choice"),selected = "ii_choice")),
                            
                            #Number of top terms used for the evaluation and selection of the final model based on topic coherence 
                            numericInput(inputId = "num_top_c",label = "Number of top terms",value = 10,min = 2,max = 50,step = 1),
@@ -320,7 +330,7 @@ ui <- fluidPage(
                        plotOutput(outputId = "main_plot_topic",height = 1000),
                        
                        #Visualization of topic divergence and prevalence, based on LDAvis
-                      wellPanel(id="sidebar", visOutput(outputId = "topic_vis_plot_clust")),
+                      wellPanel(id="topicvis", visOutput(outputId = "topic_vis_plot_clust")),
                        
                        #Results of a Generalized Linear Model using the topic memberships of the documents as independent variables and the target variable, selected in the File Tab, as the dependent variable.
                        selectizeInput(inputId = "multinomial_reg_value_clust",label="Reference Class on Multinomial Logistic Regression",choices = list()),
@@ -334,7 +344,10 @@ ui <- fluidPage(
                            #Build topic model
                            tags$h2(tags$strong("Topic Modelling Options")),
                            #Available alternatives of topic modelling algorithms
-                           fluidRow(column(width = 6,offset = 0,selectizeInput(inputId = "topic_model_choice",label="Select topic model",choices = list("LDA (VEM)"="LDA_vem","LDA (Collapsed Gibbs Sampling)"="LDA_m","NMF"="NMF","CTM (VEM)"="CTM_vem","STM"='STM_vem',"ETM"='ETM',"LSA"="LSA"))),column(width = 6,offset = 0,numericInput(inputId = "no_topics",label = "Number of topics",value = 10,min = 2))),
+                           fluidRow(column(width = 6,offset = 0,selectizeInput(inputId = "topic_model_choice",label="Select topic model",choices = list("LDA (VEM)"="LDA_vem","LDA (Collapsed Gibbs Sampling)"="LDA_m","NMF"="NMF","CTM (VEM)"="CTM_vem","STM"='STM_vem'))),column(width = 6,offset = 0,numericInput(inputId = "no_topics",label = "Number of topics",value = 10,min = 2))),
+                           #,"ETM"='ETM'
+                           #,"LSA"="LSA"
+                           
                            #Number of top terms used for the evaluation and selection of the final model based on topic coherence 
                            numericInput(inputId = "num_top_t",label = "Number of top terms",value = 10,min = 2,max = 50,step = 1),
                            #Alpha and Beta, prior parameters of LDA, assessment when the LDA with Collapsed Gibbs Sampling topic modelling algorithm is selected
@@ -359,7 +372,7 @@ ui <- fluidPage(
                          
                        
                        #Visualization of topic divergence and prevalence, based on LDAvis
-                       wellPanel(id="sidebar",visOutput(outputId = "topic_vis_plot")),
+                       wellPanel(id="topicvis",visOutput(outputId = "topic_vis_plot")),
                        #Results of a Generalized Linear Model using the topic memberships of the documents as independent variables and the target variable, selected in the File Tab, as the dependent variable.
                        selectizeInput(inputId = "multinomial_reg_value_topic",label="Reference Class on Multinomial Logistic Regression",choices = list()),
                        
@@ -372,11 +385,12 @@ ui <- fluidPage(
                            tags$h2(tags$strong("Document Vector Options")),
                            
                            #Available alternatives of models
-                           selectizeInput(inputId = "doc_vec_model",label = "Document Vector Types",choices=list("Starspace"="star_model",'FastText'="ft_model","Deep Averaging Networks"="dan_model","Convolutional Neural Network (CNN)"="CNN","Recurrent Neural Network (RNN)"="RNN","Long Short Term Memory (LSTM)"="LSTM")),
+                           selectizeInput(inputId = "doc_vec_model",label = "Document Vector Types",choices=list("Latent Semantic Analysis (LSA)"="lsa_model","Starspace"="star_model",'FastText'="ft_model","Deep Averaging Networks"="dan_model")),
+                           #,"Convolutional Neural Network (CNN)"="CNN","Recurrent Neural Network (RNN)"="RNN","Long Short Term Memory (LSTM)"="LSTM"
                            #Number of dimensions
                            numericInput(inputId = "doc_vec_dims",label = "Number of Dimensions",value = 50,min = 2,step = 5),
                            #Information passed to the models, not available when the fastText or the starspace model is selected. Building a model using the all words, the words included in the Document Term Matrix with initialized weights (word vectors - see Text Preprocessing Tab) and without initialized weights. 
-                           conditionalPanel("input.doc_vec_model != 'star_model' && input.doc_vec_model != 'ft_model'",selectizeInput(inputId = "type_words_doc_vec",label="Type of word weights initilization",choices = list("All words with no initiliazed weights"="all_words","DTM words with no initiliazed weights"="dtm_nw","DTM words with initialized weights"="dtm_ww"))),
+                           conditionalPanel("input.doc_vec_model != 'star_model' && input.doc_vec_model != 'ft_model' && input.doc_vec_model !='lsa_model'",selectizeInput(inputId = "type_words_doc_vec",label="Type of word weights initilization",choices = list("All words with no initiliazed weights"="all_words","DTM words with no initiliazed weights"="dtm_nw","DTM words with initialized weights"="dtm_ww"))),
                            #Button for model building
                            fluidRow(column(width = 4,offset = 0,actionButton(inputId = "docvec_model_build",label = "Build Document Vectors"))),
 
@@ -390,7 +404,7 @@ ui <- fluidPage(
               ),
               tabPanel("Prediction Models",
                         
-                         wellPanel(id="sidebar",
+                         wellPanel(id="wellpanel",
                            tags$h2(tags$strong("Prediction Model Options")),
                            
                            ##Classification and Regression Options
@@ -444,8 +458,8 @@ ui <- fluidPage(
                       ),
              tabPanel("Export Files",
                       
-                      sidebarLayout( 
-                        sidebarPanel(id="sidebar",
+                      
+                        wellPanel(id="wellpanel",
                           tags$h2(tags$strong("Data Export Options")),
                           
                           selectInput("download_list", "Choose a dataset:",
@@ -464,8 +478,8 @@ ui <- fluidPage(
                                                   "Classification-Regression Performance" = "perf_val_mem",
                                                   "Predictions from machine learning models" = "pred_ml",
                                                   
-                                                  "Regression Results (Clusters)" = "reg_res_clust",
-                                                  "Regression Results (Topics)" = "reg_res_topic",
+                                                  "Regression/Correlation Results (Clusters)" = "reg_res_clust",
+                                                  "Regression/Correlation Results (Topics)" = "reg_res_topic",
                                                   "Feature Selection Results" = "feat_selec_res",
                                                   "Split Data (True and False values)"="split2_att"
                                                   
@@ -477,12 +491,12 @@ ui <- fluidPage(
                           #Button for file exporting
                           downloadButton("download_button", "Download")
                         ),
-                        mainPanel(
+                        
                           #Visualization of the selected features
                           dataTableOutput(outputId = "download_table")
                           
-                        )
-                      )
+                        
+                      
              ),
              tabPanel("Guide and Info",
                       
@@ -668,9 +682,18 @@ server <- function(input, output, session) {
   )
   
   output$variable_table <- renderTable({
-    df_temp=cbind(dataset_chosen$table_label,dataset_chosen$new_values)
-    df_temp=cbind(names(dataset_chosen$table_label),df_temp)
-    colnames(df_temp)=c("Class","Frequency","New value")
+    if(dataset_chosen$output_var_type=="nom_choice"){
+      df_temp=cbind(dataset_chosen$table_label,dataset_chosen$new_values)
+      df_temp=cbind(names(dataset_chosen$table_label),df_temp)
+      colnames(df_temp)=c("Class","Frequency","New value")
+      
+    }else if (dataset_chosen$output_var_type=="con_choice"){
+      df_temp = dataset_chosen$table_label
+      df_temp=cbind(names(dataset_chosen$table_label),df_temp)
+      colnames(df_temp)=c("Measure","Value")
+      
+    }
+    
     rownames(df_temp)=NULL
     return(df_temp)})
   
@@ -683,6 +706,7 @@ server <- function(input, output, session) {
         ggplot(df, aes(x=class_col))+
              geom_histogram(color="darkblue", fill="lightblue") +
              ggtitle("Target variable frequencies")+
+              xlab("value")+
              theme_solarized_2(light = F)) 
     )
   })
@@ -704,6 +728,7 @@ server <- function(input, output, session) {
                        ggplot(df, aes(x=class_col))+
                          geom_histogram(color="darkblue", fill="lightblue")+
                          ggtitle(paste(extra_vars$extra_var_names[i],"frequencies"))+
+                         xlab("value")+
                          theme_solarized_2(light = F)) 
                    )
                    
@@ -729,6 +754,7 @@ server <- function(input, output, session) {
       geom_bar(stat = "identity", fill = "lightblue", color = "blue")+
       scale_x_discrete(limits = names(col_sums_all[order_csa[1:input$word_bar_plot_no_items]]))+
       ggtitle("Keyword - Document Occurence (Train Set)")+
+      ylab("Number of documents")+
       theme_solarized_2(light = F)+
         theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
       )
@@ -750,8 +776,8 @@ server <- function(input, output, session) {
                  shape = word_cloud_shape_react(),
                  rotateRatio = 0.5,
                  minSize = 0.1,
-                 color="chocolate"
-                 
+                 color="chocolate", backgroundColor = "black"
+                 #, color = "random-light"
       ))
     })
   
@@ -881,9 +907,9 @@ server <- function(input, output, session) {
     
     max_topics_l=clust_no_range$max- clust_no_range$min+1
     
-    ev_1=unlist(model()$coherence_npmi)[clust_no_range$min:clust_no_range$max]
-    ev_2=unlist(model()$topic_divergence_list)[clust_no_range$min:clust_no_range$max]
-    ev_3=unlist(model()$topic_divergence_all_list)[clust_no_range$min:clust_no_range$max]
+    ev_1=unlist(model()$coherence_npmi)[(clust_no_range$min-1):(clust_no_range$max-1)]
+    ev_2=unlist(model()$topic_divergence_list)[(clust_no_range$min-1):(clust_no_range$max-1)]
+    ev_3=unlist(model()$topic_divergence_all_list)[(clust_no_range$min-1):(clust_no_range$max-1)]
     
     a=ev_1+ev_2+ev_3
     
@@ -1027,12 +1053,14 @@ server <- function(input, output, session) {
     dataset_chosen$spl_col=input$spl_col
     dataset_chosen$output_var_type=input$nom_con_var
     if(dataset_chosen$output_var_type=="nom_choice"){
-      updateSelectInput(inputId = "doc_vec_model",choices=list("Starspace"="star_model",'FastText'="ft_model","Deep Averaging Networks"="dan_model","Convolutional Neural Network (CNN)"="CNN","Recurrent Neural Network (RNN)"="RNN","Long Short Term Memory (LSTM)"="LSTM"))
-      updateRadioButtons(inputId = "imb_options_nn",choices = list("Imbalance"=T,"No Imbalance"=F))
+      updateSelectInput(inputId = "doc_vec_model",choices=list("Latent Semantic Analysis (LSA)"="lsa_model","Starspace"="star_model",'FastText'="ft_model","Deep Averaging Networks"="dan_model"))
+      #,"Convolutional Neural Network (CNN)"="CNN","Recurrent Neural Network (RNN)"="RNN","Long Short Term Memory (LSTM)"="LSTM"
+      #updateRadioButtons(inputId = "imb_options_nn",choices = list("Imbalance"=T,"No Imbalance"=F))
       
     }else if(dataset_chosen$output_var_type=="con_choice"){
-      updateSelectInput(inputId = "doc_vec_model",choices=list("Deep Averaging Networks"="dan_model","Convolutional Neural Network (CNN)"="CNN","Recurrent Neural Network (RNN)"="RNN","Long Short Term Memory (LSTM)"="LSTM"))
-      updateRadioButtons(inputId = "imb_options_nn",choices = list("No Imbalance"=F))
+      updateSelectInput(inputId = "doc_vec_model",choices=list("Latent Semantic Analysis (LSA)"="lsa_model","Deep Averaging Networks"="dan_model"))
+      #,"Convolutional Neural Network (CNN)"="CNN","Recurrent Neural Network (RNN)"="RNN","Long Short Term Memory (LSTM)"="LSTM"
+      #updateRadioButtons(inputId = "imb_options_nn",choices = list("No Imbalance"=F))
       
     }
     dataset_chosen$no_examples=nrow(dataset_chosen$main_matrix)
@@ -1286,6 +1314,35 @@ server <- function(input, output, session) {
       word_vectors_list$words=graph_tokens_rev_ii
       
       
+    }else if(input$vector_choice=="tcm_ji"){
+      graph_tokens_rev_ii=item_list_text$tcm
+      
+      for(i in 1:(nrow(graph_tokens_rev_ii)-1)){
+        for(j in (i+1):nrow(graph_tokens_rev_ii)){
+          
+          temp_val=(graph_tokens_rev_ii[i,j])/( graph_tokens_rev_ii[i,i] + graph_tokens_rev_ii[j,j] - graph_tokens_rev_ii[i,j])
+          graph_tokens_rev_ii[i,j]=temp_val
+          graph_tokens_rev_ii[j,i]=temp_val
+        }
+      }
+      diag(graph_tokens_rev_ii)=1
+      word_vectors_list$words=graph_tokens_rev_ii
+      
+      
+    }else if(input$vector_choice=="tcm_ei"){
+      graph_tokens_rev_ii=item_list_text$tcm
+      
+      for(i in 1:(nrow(graph_tokens_rev_ii)-1)){
+        for(j in (i+1):nrow(graph_tokens_rev_ii)){
+          
+          temp_val=(graph_tokens_rev_ii[i,j]^2)/( graph_tokens_rev_ii[i,i]* graph_tokens_rev_ii[j,j])
+          graph_tokens_rev_ii[i,j]=temp_val
+          graph_tokens_rev_ii[j,i]=temp_val
+        }
+      }
+      diag(graph_tokens_rev_ii)=1
+      word_vectors_list$words=graph_tokens_rev_ii
+      
     }else if(input$vector_choice=="word2vec_skipgram"){
       h2o.init(nthreads = -1)
       word_vectors_list$words <- h2o.word2vec(training_frame = h2o.tokenize(as.h2o(item_list_text$text[dataset_chosen$split2==T]),split = " "),word_model = "SkipGram",vec_size = input$vector_size,window_size = 5)
@@ -1357,8 +1414,7 @@ server <- function(input, output, session) {
       
     }else if(input$model_choice=="leiden"){
       ii_cond=ifelse(input$leiden_features=="word_simil",yes=T,no=F)
-      ii_or_rev=ifelse(input$ii_or_rev_ii=='rev_ii_choice',yes=T,no=F)
-      temp=(fclust_mapping_with_npmi(word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,l=input$num_top_c,type = "leiden",tcm = item_list_text$tcm,glove_leiden=ii_cond,ii_rev=ii_or_rev,stand_leiden_words_mem = input$stand_leiden_words_mem,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col]))
+      temp=(fclust_mapping_with_npmi(word_vectors = word_vectors_list$words,min_topics = input$min_num_top_c,topic_range = input$max_num_top_c,tSparse_train = item_list_text$dtm,center_top_Words = input$center_top_Words,l=input$num_top_c,type = "leiden",tcm = item_list_text$tcm,glove_leiden=ii_cond,stand_leiden_words_mem = input$stand_leiden_words_mem,split2=dataset_chosen$split2,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col],sim_option=input$sim_option))
       
     }
     colnames(temp$document_memberships)=paste("Cluster",c(1:ncol(temp$document_memberships)))
@@ -1389,7 +1445,7 @@ server <- function(input, output, session) {
   observeEvent(input$docvec_model_build,{
     model_docvec$doc_vectors=Document_vectors(word_vectors=word_vectors_list$words,item_list_text=item_list_text,categories_assignement=dataset_chosen$main_matrix[,dataset_chosen$class_col],split2=dataset_chosen$split2,option=dataset_chosen$output_var_type,type=input$doc_vec_model,no_dims=input$doc_vec_dims,type_words=input$type_words_doc_vec)
     
-    model_trained_temp=switch(input$doc_vec_model,"star_model"="Starspace","ft_model"='FastText',"dan_model"="Deep Averaging Networks","CNN"="Convolutional Neural Network (CNN)","RNN"="Recurrent Neural Network (RNN)","LSTM"="Long Short Term Memory (LSTM)")
+    model_trained_temp=switch(input$doc_vec_model,"lsa_model"="LSA","star_model"="Starspace","ft_model"='FastText',"dan_model"="Deep Averaging Networks","CNN"="Convolutional Neural Network (CNN)","RNN"="Recurrent Neural Network (RNN)","LSTM"="Long Short Term Memory (LSTM)")
     output$doc_vecs_info<-renderText(paste("Type:",model_trained_temp,", Number of dimensions:",ncol(model_docvec$doc_vectors)))
     
     })
@@ -1524,8 +1580,8 @@ server <- function(input, output, session) {
                        "perf_val_mem" = as.data.frame(class_predictions_acc()$eval_list),
                        "pred_ml" = as.data.frame(class_predictions_acc()$pred_list),
                        "doc_vectors" = as.data.frame(model_docvec$doc_vectors),
-                       "reg_res_clust" = as.data.frame(model()$reg_res),
-                       "reg_res_topic" = as.data.frame(model_topic()$reg_res),
+                       "reg_res_clust" = as.data.frame(reg_res_cluster()),
+                       "reg_res_topic" = as.data.frame(reg_res_topic()),
                        "feat_selec_res" = as.data.frame(feature_evaluation_list()),
                        "split2_att"=as.data.frame(dataset_chosen$split2),
                        
