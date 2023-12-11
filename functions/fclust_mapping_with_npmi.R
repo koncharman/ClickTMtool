@@ -1,4 +1,4 @@
-"fclust_mapping_with_npmi"<-function(word_vectors,min_topics=2,topic_range=20,tSparse_train,center_top_Words=F,l=10,type="fclust",tcm,glove_leiden=F,split2,categories_assignement,ii_rev=T,leiden_option_mem=2,no_clust_mem_cond=F,stand_leiden_words_mem=F){
+"fclust_mapping_with_npmi"<-function(word_vectors,min_topics=2,topic_range=20,tSparse_train,center_top_Words=F,l=10,type="fclust",tcm,glove_leiden=F,split2,categories_assignement,leiden_option_mem=2,no_clust_mem_cond=F,stand_leiden_words_mem=F,sim_option=NULL){
   
   set.seed(831)
   library(philentropy)
@@ -305,18 +305,33 @@
 
     }else{
       graph_tokens_rev_ii=tcm
-      graph_tokens_rev_ii=graph_tokens_rev_ii/diag(graph_tokens_rev_ii)
+      
+      if(sim_option=="ii_choice" | sim_option=="rev_ii_choice") graph_tokens_rev_ii=graph_tokens_rev_ii/diag(graph_tokens_rev_ii)
       
       for(i in 1:(nrow(graph_tokens_rev_ii)-1)){
         for(j in (i+1):nrow(graph_tokens_rev_ii)){
           
-          #min or max
-          temp_val=ifelse(ii_rev==T,yes=min(graph_tokens_rev_ii[i,j],graph_tokens_rev_ii[j,i]),no=max(graph_tokens_rev_ii[i,j],graph_tokens_rev_ii[j,i]))
+          if(sim_option=="ii_choice"){
+            temp_val= max(graph_tokens_rev_ii[i,j],graph_tokens_rev_ii[j,i])
+              
+           
+            
+          }else if(sim_option=="rev_ii_choice"){
+           temp_val= min(graph_tokens_rev_ii[i,j],graph_tokens_rev_ii[j,i])
+          }else if(sim_option=="ji_choice"){
+            temp_val=(graph_tokens_rev_ii[i,j])/( graph_tokens_rev_ii[i,i] + graph_tokens_rev_ii[j,j] - graph_tokens_rev_ii[i,j])
+            
+          }else if(sim_option=="ei_choice"){
+            temp_val=(graph_tokens_rev_ii[i,j]^2)/( graph_tokens_rev_ii[i,i]* graph_tokens_rev_ii[j,j])
+            
+          }
+          
           
           graph_tokens_rev_ii[i,j]=temp_val
           graph_tokens_rev_ii[j,i]=temp_val
         }
       }
+      diag(graph_tokens_rev_ii)=1
       
     }
     

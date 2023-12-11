@@ -77,9 +77,9 @@
     
     model <- stm(documents =doc_train[split2==T],vocab = colnames(item_list_text$dtm),K = no_topics)
     
-    ldaOut.terms=matrix(nrow = no_topics,ncol=no_top_terms)
+    ldaOut.terms=matrix(ncol = no_topics,nrow=no_top_terms)
     for(i in 1:no_topics){
-      ldaOut.terms[i,]=colnames(item_list_text$dtm)[order(model$beta$logbeta[[1]][i,],decreasing = T)[1:no_top_terms]]
+      ldaOut.terms[,i]=colnames(item_list_text$dtm)[order(model$beta$logbeta[[1]][i,],decreasing = T)[1:no_top_terms]]
     }
     
     gc()
@@ -272,7 +272,16 @@
     library(DirichletReg)
     library(Matrix)
     model=FitLsaModel(dtm = Matrix(as.matrix(item_list_text$dtm[split2==T,]),sparse = T),k = no_topics)
-    ldaOut.terms=GetTopTerms(model$phi, no_top_terms, return_matrix = TRUE)
+    
+    ldaOut.terms=matrix(ncol = no_topics,nrow=no_top_terms)
+    for(i in 1:no_topics){
+      ldaOut.terms[,i]=colnames(item_list_text$dtm)[order(model$phi[i,],decreasing = T)[1:no_top_terms]]
+    }
+    
+    gc()
+    
+    
+    #ldaOut.terms=t(GetTopTerms(model$phi, no_top_terms, return_matrix = TRUE))
 
 
     
@@ -345,12 +354,12 @@
     gc()
     #t_h=t(model$h)
     #doc_mem=as.matrix(item_list_text$dtm)%*%t_h%*%solve((model$d*model$h)%*%t_h)
-    doc_mem=t(project(A = item_list_text$dtm,h=model$h)/model$d)
+    doc_mem=t(project(A = item_list_text$dtm,h=model$h))
+    #/model$d
     gc()
-    doc_mem=doc_mem/rowSums(doc_mem)
+    #doc_mem=doc_mem/rowSums(doc_mem)
     
     temp_theta=t(model$d*t(model$w));r_theta=rowSums(temp_theta);temp_theta=temp_theta/r_theta
-    
     
     #temp_t=model$d
     temp_t=colSums(temp_theta*r_theta)

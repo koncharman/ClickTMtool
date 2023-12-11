@@ -1,6 +1,14 @@
 "Document_vectors"<-function(word_vectors=NULL,item_list_text,categories_assignement,split2,option="nom_choice",type="star_model",no_dims=50,type_words="all_words"){
   set.seed(831)
   
+  if(type=="lsa_model"){
+    library(textmineR)
+    library(DirichletReg)
+    library(Matrix)
+    model=FitLsaModel(dtm = Matrix(as.matrix(item_list_text$dtm[split2==T,]),sparse = T),k = no_dims)
+    return(predict(model,Matrix(as.matrix(item_list_text$dtm))))#,iterations = iter_var
+  }
+  
   
   if(option=="nom_choice"){
     if(type=="star_model"){
