@@ -29,7 +29,7 @@ In combination to the selection of the two main thresholds (discussed previously
 ![bbc case study 7](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_7.jpg?raw=true)
 
 
-
+(https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_7.html?raw=false)
 
 
 Overall, 36 distinct topics are discovered with a relatively satisfying coherence score of 0.41 and no significant overlaps, indicating that the utilized approach is indeed an acceptable alternative for topic modelling tasks. By briefly observing the main words of the topics included in the network, we distinguish some highly interpretable subclasses that are strongly related to the five main classes e.g. cinema and films, labor parties and elections, music and related technologies, economy etc. Moreover, without reviewing the initial texts of the dataset, we successfully distribute the extracted topics into the five main classes based on our inspections of the most probable words and the main network.
@@ -89,7 +89,7 @@ torch::install\_torch()
 
 keras::install\_keras(tensorflow = "2.8")
 
-The versions of torch, keras and tensorflow should be compatible with the machine ’s system. Also, you may need to install specific versions of all libraries, it is an important step that affects some functionalities of ClickTMtool. In the future, you might want to install more recent versions so you will need to re-run both scripts from Rstudio.
+The versions of torch, keras and tensorflow should be compatible with the machine Â’s system. Also, you may need to install specific versions of all libraries, it is an important step that affects some functionalities of ClickTMtool. In the future, you might want to install more recent versions so you will need to re-run both scripts from Rstudio.
 ## **Installation of R and Rstudio**
 The following step is to install R and Rstudio. For R <https://cran.r-project.org/bin/windows/base/> and Rstudio <https://support--rstudio-com.netlify.app/products/rstudio/download/#download>. Current version of Rstudio [RStudio Desktop - Posit](https://posit.co/download/rstudio-desktop/). Need to update Rstudio to the latest version. No changes in the default settings are needed.
 
@@ -109,7 +109,7 @@ Download a CUDA version, example of 11.2.2: <https://developer.nvidia.com/cuda-1
 
 An important step is to download additional files for CUDA, in our case we needed the file CUDNN64\_8.DLL. We saved the file in the following directory: \Program Files\NVIDIA GPU Computing Toolkit\CUDA\v11.2\bin or search for a similar directory depending on your installation.
 ## **H2o dependencies**
-Java JDK and the H2o library is required to train models using word2vec (Word Representations) and Deep Averaging Networks (Document Vectors). Also, H2o is required to train machine learning models (Prediction Models) when this library is selected instead of CARET. If you don’t intend to explore these utilities, you can proceed with the rest functionalities of ClickTMtool.
+Java JDK and the H2o library is required to train models using word2vec (Word Representations) and Deep Averaging Networks (Document Vectors). Also, H2o is required to train machine learning models (Prediction Models) when this library is selected instead of CARET. If you donÂ’t intend to explore these utilities, you can proceed with the rest functionalities of ClickTMtool.
 
 Potential error resulting when 32-bit Java is installed.
 
