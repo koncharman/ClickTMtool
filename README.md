@@ -21,17 +21,9 @@ In combination to the selection of the two main thresholds (discussed previously
 
 ![bbc case study 5](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_5.jpg?raw=true)
 
-
 ![bbc case study 6](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_6.jpg?raw=true)
 
-
-
 ![bbc case study 7](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_7.jpg?raw=true)
-
-![Interactive LDAvis]
-(https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/LDAvis.html?raw=true).
-
-
 
 Overall, 36 distinct topics are discovered with a relatively satisfying coherence score of 0.41 and no significant overlaps, indicating that the utilized approach is indeed an acceptable alternative for topic modelling tasks. By briefly observing the main words of the topics included in the network, we distinguish some highly interpretable subclasses that are strongly related to the five main classes e.g. cinema and films, labor parties and elections, music and related technologies, economy etc. Moreover, without reviewing the initial texts of the dataset, we successfully distribute the extracted topics into the five main classes based on our inspections of the most probable words and the main network.
 
