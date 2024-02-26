@@ -28,8 +28,8 @@ In combination to the selection of the two main thresholds (discussed previously
 
 ![bbc case study 7](https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_7.jpg?raw=true)
 
-
-(https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/bbc_7.html?raw=false).
+![Interactive LDAvis]
+(https://github.com/koncharman/FastTMtool/blob/main/bbc_case_study_images/LDAvis.html?raw=true).
 
 
 
