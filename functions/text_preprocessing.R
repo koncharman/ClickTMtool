@@ -1,6 +1,6 @@
-"text_preprocessing"<-function(all_set_text,ngrams_clause=F,min_doc_r=0.002,max_doc_r=0.005,ret_dtm=T,do_stem=F,do_rmv_stop=T,do_lower_case=T,do_rmv_mention=T,do_rpl_number=T,do_rpl_hash=T,do_rpl_html=T,do_rpl_qmark=T,do_rpl_emark=T,do_rpl_punct=T,do_rpl_digit=T,basic_preprocess=T,split2,is_tfidf=F,min_ngrams=2,max_ngrams=4){
+"text_preprocessing"<-function(all_set_text,ngrams_clause=F,min_doc_r=0.002,max_doc_r=0.005,ret_dtm=T,do_stem=F,do_rmv_stop=T,do_lower_case=T,do_rmv_mention=T,do_rpl_number=T,do_rpl_hash=T,do_rpl_html=T,do_rpl_qmark=T,do_rpl_emark=T,do_rpl_punct=T,do_rpl_digit=T,basic_preprocess=T,split2,term_weight_fun="tf_chosen",min_ngrams=2,max_ngrams=4,thres_limits_data="all_data_chosen"){
   
-  #ngrams_clause=F;min_doc_r=0.002;max_doc_r=0.005;ret_dtm=T;do_stem=F;do_rmv_stop=T;do_lower_case=T;do_rmv_mention=T;do_rpl_number=T;do_rpl_hash=T;do_rpl_html=T;do_rpl_qmark=T;do_rpl_emark=T;do_rpl_punct=T;do_rpl_digit=T;basic_preprocess=T;is_tfidf=F
+  #ngrams_clause=F;min_doc_r=0.002;max_doc_r=0.005;ret_dtm=T;do_stem=F;do_rmv_stop=T;do_lower_case=T;do_rmv_mention=T;do_rpl_number=T;do_rpl_hash=T;do_rpl_html=T;do_rpl_qmark=T;do_rpl_emark=T;do_rpl_punct=T;do_rpl_digit=T;basic_preprocess=T;term_weight_fun=F
   
   set.seed(831)
   library(tm)
@@ -37,10 +37,10 @@
   
   }
   
-  if(do_rmv_stop==T) corpus = tm_map(corpus, removeWords,  c("the",stopwords("english")))#Glove
+  if(do_rmv_stop==T) corpus = tm_map(corpus, removeWords,  c("the",stopwords("english")))#Glove # see stopwords("smart")
   
   
-  if (do_stem==T) corpus = tm_map(corpus, stemDocument)
+  if (do_stem==T) corpus = tm_map(corpus, stemDocument) 
   
   
   if(ngrams_clause==T){
@@ -59,10 +59,23 @@
   
   if(ret_dtm){
     
-    min_doc=length(all_set_text[split2])*min_doc_r # 0.1 0.002 *
-    max_doc=length(all_set_text[split2])*max_doc_r # 0.05 0.5 *
+    
+    
+    if(thres_limits_data=="all_data_chosen"){
+      min_doc=length(all_set_text)*min_doc_r # 0.1 0.002 *
+      max_doc=length(all_set_text)*max_doc_r # 0.05 0.5 *
+    }else if(thres_limits_data=="training_data_chosen"){
+      min_doc=length(all_set_text[split2])*min_doc_r # 0.1 0.002 *
+      max_doc=length(all_set_text[split2])*max_doc_r # 0.05 0.5 *
+    }
+    
+    
     
     frequencies=DocumentTermMatrix(corpus[split2==T], control = list(bounds = list(global = c(min_doc, max_doc))))
+    #frequencies=DocumentTermMatrix(corpus, control = list(bounds = list(global = c(min_doc, max_doc))))
+    
+    
+    
     
     terms_chosen=frequencies$dimnames$Terms
    
@@ -71,8 +84,11 @@
     
     frequencies=DocumentTermMatrix(corpus)
     
+
     
     tSparse = as.data.frame(as.matrix(frequencies[,terms_chosen]))
+    
+    
     
     colnames(tSparse)=make.names(colnames(tSparse))
     
@@ -90,12 +106,16 @@
     } 
     
     
-    if(is_tfidf==T){
+    if(term_weight_fun=="tfidf_chosen"){
       
       library(binda)
       term_doc_exist=colSums(dichotomize(tSparse[split2==T,],.Machine$double.xmin))
       tSparse=tSparse/r_sums
       tSparse=t(t(tSparse)*log(x = length(which(split2==T))/term_doc_exist,base = 2))
+    }
+    
+    if(term_weight_fun=="binarytf_chosen"){
+      tSparse= dichotomize(X = tSparse,thresh = .Machine$double.xmin)
     }
     
     item_ret[['dtm']]=tSparse
@@ -104,7 +124,7 @@
     rownames(item_ret[['tcm']])=colnames(item_ret[['dtm']])
     colnames(item_ret[['tcm']])=colnames(item_ret[['dtm']])
     
-    
+  
   }
   
   

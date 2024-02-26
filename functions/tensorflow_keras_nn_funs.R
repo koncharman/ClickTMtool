@@ -206,7 +206,8 @@
         y = categories_assignement[split2,],
         batch_size = batch_size,
         epochs = epochs,
-        validation_split = 0.2,sample_weight = init_weights,class_weight=class_weights_all
+        validation_split = 0.2,sample_weight = init_weights
+        #,class_weight=class_weights_all
       )
     
     
@@ -252,7 +253,8 @@
         y = categories_assignement[split2,],
         batch_size = batch_size,
         epochs = epochs,
-        validation_split = 0.2,sample_weight = init_weights,class_weight=class_weights_all
+        validation_split = 0.2,sample_weight = init_weights
+        #,class_weight=class_weights_all
       )
     
     
@@ -308,7 +310,8 @@
           y = categories_assignement[split2,],
           batch_size = batch_size,
           epochs = epochs,
-          validation_split = 0.2,sample_weight = init_weights,class_weight=class_weights_all
+          validation_split = 0.2,sample_weight = init_weights
+          #,class_weight=class_weights_all
         )
     
     

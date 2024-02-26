@@ -26,8 +26,14 @@
     auc_list=c()
     for(i in 1:length(table_test_values)){
       temp_test=test
-      pos_pos=which(temp_test==(i-1))
-      pos_neg=which(temp_test!=(i-1))
+      #
+      #pos_pos=which(temp_test==(i-1))
+      #pos_neg=which(temp_test!=(i-1))
+      
+      #
+      pos_pos=which(temp_test==names(table_test_values)[i])
+      pos_neg=which(temp_test!=names(table_test_values)[i])
+      
       temp_test[pos_pos]=1
       temp_test[pos_neg]=0
       

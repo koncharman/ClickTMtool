@@ -7,7 +7,7 @@
   library(LDAvis)
   library(servr)
   library("tsne")
-  svd_tsne <- function(x) tsne(svd(x)$u)
+  svd_tsne <- function(x) tsne(svd(x)$u,k=2)# tsne(x,k = 2) #tsne(svd(x)$u)
   
   
  
@@ -18,7 +18,7 @@
   gc()
   if(type=="LDA_vem"){
     library(topicmodels)
-    model=LDA(x = item_list_text$dtm[split2==T,],k=no_topics)
+    model=LDA(x = as.matrix(item_list_text$dtm[split2==T,]),k=no_topics)
     ldaOut.terms=terms(model,no_top_terms)
     fc=find_coh(ldaOut.terms,item_list_text$tcm,nrow(item_list_text$dtm[split2==T,]))
     gc()
@@ -40,7 +40,7 @@
     
   }else if(type=="CTM_vem"){
     library(topicmodels)
-    model=CTM(item_list_text$dtm[split2==T,], k = no_topics)
+    model=CTM(as.matrix(item_list_text$dtm[split2==T,]), k = no_topics)
     
     ldaOut.terms=terms(model,no_top_terms)
     
@@ -317,6 +317,8 @@
     gc()
     
     topic_vis=createJSON(mds.method = svd_tsne ,phi = model$phi,theta = model$theta,doc.length = row_s[split2==T],vocab = colnames(item_list_text$dtm),term.frequency = colSums(item_list_text$dtm[split2==T,]))
+    #topic_vis=createJSON(phi = model$phi,theta = model$theta,doc.length = row_s[split2==T],vocab = colnames(item_list_text$dtm),term.frequency = colSums(item_list_text$dtm[split2==T,]))
+    
     
     doc_mem=predict(model,Matrix(as.matrix(item_list_text$dtm)),iterations = iter_var)
     
@@ -369,6 +371,8 @@
     gc()
     
     topic_vis=createJSON(mds.method = svd_tsne ,phi = model$h,theta = temp_theta,doc.length = r_theta,vocab = colnames(item_list_text$dtm),term.frequency = colSums(item_list_text$dtm[split2==T,]))
+    #topic_vis=createJSON(phi = model$h,theta = temp_theta,doc.length = r_theta,vocab = colnames(item_list_text$dtm),term.frequency = colSums(item_list_text$dtm[split2==T,]))
+    
     
     td=length(unique(as.vector(ldaOut.terms)))/(no_top_terms*no_topics)
     

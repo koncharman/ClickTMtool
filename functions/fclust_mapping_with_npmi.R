@@ -6,7 +6,7 @@
   library(LDAvis)
   library(servr)
   library("tsne")
-  svd_tsne <- function(x) tsne(svd(x)$u)
+  svd_tsne <- function(x) tsne(svd(x)$u,k=2) #tsne(x,k=2) #tsne(svd(x)$u)
   
   
   
@@ -132,7 +132,16 @@
     #geom_text_repel(max.overlaps = 50)+
     labs(colour="Cluster",x="x",y="y")+
     ggtitle("Cluster Plot")+
-    theme_solarized_2(light = F)
+    #theme_solarized_2(light = F)
+    theme(
+      panel.background = element_rect(fill = "white",
+                                      colour = "lightblue",
+                                      size = 0.5, linetype = "solid"),
+      panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                      colour = "lightgrey"), 
+      panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                      colour = "lightgrey")
+    )
   
   
   ppl=ggplot( data = as.data.frame(word_vectors[pos,]),mapping = aes(x, y,colour = Cluster,label = rownames(word_vectors[pos,]))) +
@@ -143,7 +152,16 @@
     ggtitle(paste("Fuzzy k-means Clustering Plot NPMI:",max_coh,"Topic Divergence (Top terms):",td,"Topic Divergence (All Terms):",td_all))+
     xlim(c(min(word_vectors[pos,1])-1,max(word_vectors[pos,1])+1))+
     ylim(c(min(word_vectors[pos,2])-1,max(word_vectors[pos,2])+1))+
-    theme_solarized_2(light = F)
+    #theme_solarized_2(light = F)
+    theme(
+      panel.background = element_rect(fill = "white",
+                                      colour = "lightblue",
+                                      size = 0.5, linetype = "solid"),
+      panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                      colour = "lightgrey"), 
+      panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                      colour = "lightgrey")
+    )
   
  
   
@@ -155,6 +173,7 @@
   
   
   topic_vis=createJSON(mds.method = svd_tsne,phi = phi,theta = tSparse_fclust[split2==T,],doc.length = row_s[split2==T],vocab = colnames(tSparse_train),term.frequency = col_s_train)
+  #topic_vis=createJSON(phi = phi,theta = tSparse_fclust[split2==T,],doc.length = row_s[split2==T],vocab = colnames(tSparse_train),term.frequency = col_s_train)
   
   
   
@@ -270,8 +289,16 @@
       #geom_text_repel(max.overlaps = 50)+
       labs(colour="Cluster",x="x",y="y")+
       ggtitle("Cluster Plot")+
-      theme_solarized_2(light = F)
-    
+      #theme_solarized_2(light = F)
+      theme(
+        panel.background = element_rect(fill = "white",
+                                        colour = "lightblue",
+                                        size = 0.5, linetype = "solid"),
+        panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                        colour = "lightgrey"), 
+        panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                        colour = "lightgrey")
+      )
     
     ppl=ggplot( data = as.data.frame(word_vectors[pos,]),mapping = aes(x, y,colour = Cluster,label = rownames(word_vectors[pos,]))) +
       geom_mark_ellipse(aes(fill = Cluster,label=as.factor(Cluster))) +
@@ -280,8 +307,16 @@
       ggtitle(paste("Gaussian Mixture Models Clustering Plot NPMI:",max_coh,"Topic Divergence (Top terms):",td,"Topic Divergence (All terms):",td_all))+
       xlim(c(min(word_vectors[pos,1])-1,max(word_vectors[pos,1])+1))+
       ylim(c(min(word_vectors[pos,2])-1,max(word_vectors[pos,2])+1))+
-      theme_solarized_2(light = F)
-    
+      #theme_solarized_2(light = F)
+      theme(
+        panel.background = element_rect(fill = "white",
+                                        colour = "lightblue",
+                                        size = 0.5, linetype = "solid"),
+        panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                        colour = "lightgrey"), 
+        panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                        colour = "lightgrey")
+      )
     
   
     
@@ -290,6 +325,7 @@
     phi=phi/rowSums(phi)
     
     topic_vis=createJSON(mds.method = svd_tsne,phi = phi,theta = tSparse_mclust[split2==T,],doc.length = row_s[split2==T],vocab = colnames(tSparse_train),term.frequency = col_s_train)
+    #topic_vis=createJSON(phi = phi,theta = tSparse_mclust[split2==T,],doc.length = row_s[split2==T],vocab = colnames(tSparse_train),term.frequency = col_s_train)
     
     
     return(list("phi"=phi,"m_clust"=m_clust_final,"short_visualization"=ppl,"full_visualization"=ppl2,"document_memberships"=tSparse_mclust,"coherence_npmi"=coh_list,'max_coh'=max_coh,"top_terms"=ldaOut.terms,'topic_vis'=topic_vis,"topic_divergence"=td,"topic_divergence_list"=div_list,"topic_divergence_all"=td_all,"topic_divergence_all_list"=div_list_all))
@@ -577,8 +613,16 @@
     geom_segment(data=g_matrix,aes(x=from.x,xend = to.x, y=from.y,yend = to.y),colour="black") + #size="weight"
     geom_point(data=all_df,aes(x=V1,y=V2),size=5,colour=(palete_col[as.numeric(all_df$cluster)+1])) +
     geom_text(data=all_df,aes(x=as.numeric(V1),y=as.numeric(V2),label=paste(all_df$cluster,all_df$label)))+
-      theme_solarized_2(light = F)
-      
+      #theme_solarized_2(light = F)
+      theme(
+        panel.background = element_rect(fill = "white",
+                                        colour = "lightblue",
+                                        size = 0.5, linetype = "solid"),
+        panel.grid.major = element_line(size = 0.5, linetype = 'solid',
+                                        colour = "lightgrey"), 
+        panel.grid.minor = element_line(size = 0.25, linetype = 'solid',
+                                        colour = "lightgrey")
+      )
     
     print(table(token_memberships_all_final))
     
@@ -592,6 +636,7 @@
     
     
     topic_vis=createJSON(mds.method = svd_tsne,phi = phi,theta = tSparse_lclust[split2==T,],doc.length = row_s[split2==T],vocab = colnames(tSparse_train),term.frequency = col_s_train)
+    #topic_vis=createJSON(phi = phi,theta = tSparse_lclust[split2==T,],doc.length = row_s[split2==T],vocab = colnames(tSparse_train),term.frequency = col_s_train)
     
     
       
