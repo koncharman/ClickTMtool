@@ -988,7 +988,7 @@ server <- function(input, output, session) {
   
   output$main_topic_keyword_table<-renderDataTable(t(as.matrix(model_topic()$keyword_table)),caption=paste("Top Words Data - NPMI:",round(as.numeric(model_topic()$coherence_npmi),3),"Topic Divergence (Top terms):",round(as.numeric(model_topic()$topic_divergence),3),"Topic Divergence (All terms):",round(as.numeric(model_topic()$topic_divergence_all),3)))
   
-  output$main_clust_keyword_table<-renderDataTable(t(as.matrix(model()$top_terms)),caption=paste("Top Words Data - NPMI:",round(as.numeric(model()$topic_divergence),3),"Topic Divergence (Top terms):",round(as.numeric(model()$max_coh),3),"Topic Divergence (All terms):",round(as.numeric(model()$topic_divergence_all),3)))#
+  output$main_clust_keyword_table<-renderDataTable(t(as.matrix(model()$top_terms)),caption=paste("Top Words Data - NPMI:",round(as.numeric(model()$max_coh),3),"Topic Divergence (Top terms):",round(as.numeric(model()$topic_divergence),3),"Topic Divergence (All terms):",round(as.numeric(model()$topic_divergence_all),3)))#
   
 
   
