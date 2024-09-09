@@ -218,9 +218,11 @@ ui <- fluidPage(
                          
                          
                          #Visualization of the imported data
+                         tags$h2("Main Data"),
                          dataTableOutput(outputId = "main_table"),
                          
                          #Visualization of the Split Data
+                         tags$h2("Split Data"),
                          dataTableOutput(outputId = "split_table"),
                          
                          #Frequencies or Distribution of the target variable
@@ -401,7 +403,7 @@ ui <- fluidPage(
                            
                          ),
                          #Feature evaluation output
-                         
+                           tags$h2("Feature Scores"),
                            dataTableOutput(outputId = "feature_table")
                          
                        
@@ -440,11 +442,12 @@ ui <- fluidPage(
                            textOutput("proc_time_WC")
                          ),
                          
-                           
+                       tags$h2("Cluster evaluation"),
                        plotlyOutput(outputId = 'no_clust_eval'),
                        
                            
                        #Top terms per cluster
+                       tags$h2("Top words per cluster"),
                        dataTableOutput(outputId = "main_clust_keyword_table"),
                            
                            
@@ -452,15 +455,18 @@ ui <- fluidPage(
                        
                        
                        #Full view or short view (top terms) of the extracted clusters. Short view is not availablewhen the approach that is based on the Leiden algorithm is selected.  
+                       tags$h2("Cluster visualization"),
                        conditionalPanel("input.model_choice != 'leiden'",selectizeInput(inputId = "main_plot_topic_view",label="Cluster view",choices=list("Top words View"="top_words_view","Full View"="full_view"))),
                        br(),
                        #Main visualization of words and clusters
                        plotOutput(outputId = "main_plot_topic",height = 1000),
                        
                        #Visualization of topic divergence and prevalence, based on LDAvis
+                       tags$h2("Topic-based cluster visualization"),
                       wellPanel(id="topicvis", visOutput(outputId = "topic_vis_plot_clust")),
                        
                        #Results of a Generalized Linear Model using the topic memberships of the documents as independent variables and the target variable, selected in the File Tab, as the dependent variable.
+                       tags$h2("Regression modeling"),
                        selectizeInput(inputId = "multinomial_reg_value_clust",label="Reference Class on Multinomial Logistic Regression",choices = list()),
                        dataTableOutput(outputId = "reg_table_clust")
                        ),
@@ -496,14 +502,19 @@ ui <- fluidPage(
                          ),
                          
                            #Top terms per topic
+                           tags$h2("Top terms per topic"),
                            dataTableOutput(outputId = "main_topic_keyword_table"),
                           
                            
                          
                        
                        #Visualization of topic divergence and prevalence, based on LDAvis
+                       tags$h2("Topic visualization"),
                        wellPanel(id="topicvis",visOutput(outputId = "topic_vis_plot")),
+                       
                        #Results of a Generalized Linear Model using the topic memberships of the documents as independent variables and the target variable, selected in the File Tab, as the dependent variable.
+                       
+                       tags$h2("Regression modeling"),
                        selectizeInput(inputId = "multinomial_reg_value_topic",label="Reference Class on Multinomial Logistic Regression",choices = list()),
                        
                        dataTableOutput(outputId = "reg_table_topic")
@@ -564,6 +575,7 @@ ui <- fluidPage(
                          ),
                          
                            #Visualization of Classification and Regression performance measures
+                           tags$h2("Performance evaluation"),
                            dataTableOutput(outputId = "train_acc"),
 
                        
@@ -1117,6 +1129,7 @@ server <- function(input, output, session) {
       )
     )
   }
+  
   
   observeEvent(input$complete_var_ass,{
     
