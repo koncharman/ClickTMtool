@@ -10,6 +10,7 @@ library(ruimtehol)
 library(h2o)
 library(wordcloud2)
 library(shinydashboard)
+#https://rstudio.github.io/shinydashboard/structure.html
 library(shinyWidgets)
 library(nnet)
 library(shinythemes)
@@ -68,6 +69,23 @@ ui <- fluidPage(
   tags$head(tags$style(
     HTML('
          #wellpanel {
+            background-color: #5974A4;
+            
+        }
+         
+         '))),
+  
+  tags$head(tags$style(##cde5fe; ,  #e2e1ff; , #c5c4f3;
+    HTML('
+         #wellpanel_card {
+            background-color: #CEE0F9;
+            
+        }
+         
+         '))),
+  tags$head(tags$style(
+    HTML('
+         #simple_card {
             background-color: #5974A4;
             
         }
@@ -218,23 +236,31 @@ ui <- fluidPage(
                          
                          
                          #Visualization of the imported data
-                         tags$h2("Main Data"),
+                         fluidRow(infoBox("Main Data","View the main properties of the data")),
+                         wellPanel(id="wellpanel_card",
                          dataTableOutput(outputId = "main_table"),
-                         
+                         ),
                          #Visualization of the Split Data
-                         tags$h2("Split Data"),
-                         dataTableOutput(outputId = "split_table"),
+                         fluidRow(infoBox("Split Data","View the main properties of the split data. True values indicate that the record belongs to the training dataset and False values indicate that tge record belongs to the testing dataset.")),
+                         wellPanel(id="wellpanel_card",
+                                   dataTableOutput(outputId = "split_table"),
+                         ),
+                         
+                         
                          
                          #Frequencies or Distribution of the target variable
-                         tags$h2(tags$strong("Target Variable Frequencies")),
-                         tableOutput(outputId = "variable_table"),
+                         fluidRow(infoBox("Target Variable frequencies","View the main statistics of the target variable")),
+                         wellPanel(id="wellpanel_card",
+                                   tableOutput(outputId = "variable_table"),
+                                   
+                                   #Bar plot of the target variable
+                                   plotlyOutput(outputId = "variable_plot",height = 500),
+                         ),
                          
                          
                         
                        
-                         
-                       #Bar plot of the target variable
-                       plotlyOutput(outputId = "variable_plot",height = 500),
+       
                        
                          ),
                        tabPanel("Defining extra variables",
@@ -251,7 +277,7 @@ ui <- fluidPage(
                                 tableOutput("extra_var_display")
                                 ),
                                 #Bar plots of the extra variables
-                                tags$h2(tags$strong("Extra Variable Frequencies")),
+                                fluidRow(infoBox("Extra Variable Frequencies","View the main statistics of the extra variables used for text classification. You can add ass many as you want.")),
                                 uiOutput("extra_var_plots")
                        )
                        )
@@ -302,6 +328,8 @@ ui <- fluidPage(
                           
                            
                            br(),
+                          fluidRow(infoBoxOutput("no_words_info_box")),
+                         
                            
                            #Bar plot of word frequencies
                            tags$h2(tags$b("Barplot of Word frequencies")),
@@ -357,9 +385,9 @@ ui <- fluidPage(
                                 #Output indicating the finalization of word vectors
                                 tags$h2(tags$b("Information of word representations")),
                                 
-                                tags$h4(textOutput(outputId = "no_vec")),
+                                (infoBoxOutput(outputId = "no_vec")),
                                 
-                                tags$h4(textOutput(outputId = "word_vec_dim")),
+                                (infoBoxOutput(outputId = "word_vec_dim")),
                                 )
                        )
                        ),
@@ -403,9 +431,11 @@ ui <- fluidPage(
                            
                          ),
                          #Feature evaluation output
-                           tags$h2("Feature Scores"),
+                        fluidRow(infoBox("Feature Scores","Review most informative words-ngrams and exclude the rest from the analysis if needed")),
+                       wellPanel(id="wellpanel_card",
+                                 
                            dataTableOutput(outputId = "feature_table")
-                         
+                       )
                        
                        ),
   
@@ -441,34 +471,46 @@ ui <- fluidPage(
                            br(),
                            textOutput("proc_time_WC")
                          ),
-                         
                        tags$h2("Cluster evaluation"),
+                       fluidRow(infoBox("Cluster evaluation","Review the performance metrics of the models according to topic coherence and divergence. The best model is selected according to the maximum coherence.")),
                        plotlyOutput(outputId = 'no_clust_eval'),
                        
                            
                        #Top terms per cluster
-                       tags$h2("Top words per cluster"),
-                       dataTableOutput(outputId = "main_clust_keyword_table"),
+                       tags$h2("Top terms"),
+                       fluidRow(infoBox("Top words per cluster","Inspect the most relevent words (columns) to each cluster (rows) to identify the concepts of each cluster.")),
+                       
+                       wellPanel(id="wellpanel_card",
+                                 dataTableOutput(outputId = "main_clust_keyword_table"),
+                       ),
                            
                            
                          
                        
                        
                        #Full view or short view (top terms) of the extracted clusters. Short view is not availablewhen the approach that is based on the Leiden algorithm is selected.  
-                       tags$h2("Cluster visualization"),
+                       tags$h2("2d Cluster Plot"),
+                       fluidRow(infoBox("Cluster visualization","A more direct approach to inspect the clusters through 2d visualizations.")),
+                       
                        conditionalPanel("input.model_choice != 'leiden'",selectizeInput(inputId = "main_plot_topic_view",label="Cluster view",choices=list("Top words View"="top_words_view","Full View"="full_view"))),
                        br(),
                        #Main visualization of words and clusters
                        plotOutput(outputId = "main_plot_topic",height = 1000),
                        
                        #Visualization of topic divergence and prevalence, based on LDAvis
-                       tags$h2("Topic-based cluster visualization"),
+                       tags$h2("LDAvis"),
+                       
+                       fluidRow(infoBox("Topic-based cluster visualization","A detailed analysis of the extracted topics via the LDAvis framework to understand the relative word frequencies within a cluster and the distances between clusters.")),
+                       
                       wellPanel(id="topicvis", visOutput(outputId = "topic_vis_plot_clust")),
                        
                        #Results of a Generalized Linear Model using the topic memberships of the documents as independent variables and the target variable, selected in the File Tab, as the dependent variable.
-                       tags$h2("Regression modeling"),
-                       selectizeInput(inputId = "multinomial_reg_value_clust",label="Reference Class on Multinomial Logistic Regression",choices = list()),
+                      tags$h2("Weighting"),
+                      fluidRow(infoBox("Weights between the clusters and the target variable","Review significant clusters affecting the target variable through statistical analysis, i.e. regression modeling or correlation coefficients.")),
+                      selectizeInput(inputId = "multinomial_reg_value_clust",label="Reference Class on Multinomial Logistic Regression",choices = list()),
+                       wellPanel(id="wellpanel_card",
                        dataTableOutput(outputId = "reg_table_clust")
+                       ),
                        ),
   
   
@@ -502,22 +544,30 @@ ui <- fluidPage(
                          ),
                          
                            #Top terms per topic
-                           tags$h2("Top terms per topic"),
-                           dataTableOutput(outputId = "main_topic_keyword_table"),
+                       tags$h2("Top terms"),
+                       fluidRow(infoBox("Top terms per topic","Inspect the most relevent words (columns) to each topic (rows) to identify the concepts of each topic.")),
+                       wellPanel(id="wellpanel_card",
+                                 dataTableOutput(outputId = "main_topic_keyword_table"),
+                                 
+                                 ),
                           
                            
                          
                        
                        #Visualization of topic divergence and prevalence, based on LDAvis
-                       tags$h2("Topic visualization"),
+                       tags$h2("LDAvis"),
+                       fluidRow(infoBox("Topic visualization","A detailed analysis of the extracted topics via the LDAvis framework to understand the relative word frequencies within a topic the distances between topics")),
                        wellPanel(id="topicvis",visOutput(outputId = "topic_vis_plot")),
                        
                        #Results of a Generalized Linear Model using the topic memberships of the documents as independent variables and the target variable, selected in the File Tab, as the dependent variable.
-                       
-                       tags$h2("Regression modeling"),
+                       tags$h2("Weighting"),
+                       fluidRow(infoBox("Weights between the topics and the target variable","Review significant topics affecting the target variable through statistical analysis, i.e. regression modeling or correlation coefficients.")),
                        selectizeInput(inputId = "multinomial_reg_value_topic",label="Reference Class on Multinomial Logistic Regression",choices = list()),
-                       
-                       dataTableOutput(outputId = "reg_table_topic")
+                       wellPanel(
+                         id="wellpanel_card",
+                         dataTableOutput(outputId = "reg_table_topic")
+                         
+                       ),
                         ),
               tabPanel("Document Vectors",style = "overflow-x:scroll;",
                        
@@ -541,7 +591,10 @@ ui <- fluidPage(
                          
                            #Maybe add some Information in the next update
                            tags$h2(tags$strong("Trained Document Vectors")),
-                           textOutput("doc_vecs_info")
+                           
+                          infoBoxOutput("doc_vecs_info"),
+                          infoBoxOutput("doc_vecs_info_dims")
+                             
                          
                        
               ),
@@ -576,7 +629,11 @@ ui <- fluidPage(
                          
                            #Visualization of Classification and Regression performance measures
                            tags$h2("Performance evaluation"),
-                           dataTableOutput(outputId = "train_acc"),
+                       fluidRow(infoBox("Performance evaluation","Inspect the performance of the different models to decide if the desired accuracy levels are reached.")),
+                       wellPanel(id="wellpanel_card",
+                                 dataTableOutput(outputId = "train_acc"),
+                                 
+                                 )    
 
                        
               ),
@@ -770,14 +827,12 @@ server <- function(input, output, session) {
  
   
   
-  output$no_vec<- renderText({
-    temp_text=paste("Number of Words:",nrow(word_vectors_list$words))
+  output$no_vec<- renderInfoBox({
+    infoBox("Number of Words",nrow(word_vectors_list$words))
     
-    return(temp_text)
   })
-  output$word_vec_dim<- renderText({
-    temp_text=paste("Number of Dimensions:",ncol(word_vectors_list$words))
-    return(temp_text)
+  output$word_vec_dim<- renderInfoBox({
+    infoBox("Number of Dimensions",ncol(word_vectors_list$words))
   })
   
   
@@ -1406,6 +1461,11 @@ server <- function(input, output, session) {
     item_list_text$tcm=temp$tcm
     item_list_text$old_words=temp$old_words
     
+    
+    output$no_words_info_box<-renderInfoBox({
+      infoBox("No words or ngrams", paste(nrow(item_list_text$tcm),"Unique items"),icon = icon('list'),color='blue')
+    })
+    
     removeModal()
     
     output$proc_time_DTM<- renderText({return(paste("Processing time in seconds to construct Document Term Matrix:",round((end_time-start_time),3)))})#
@@ -1718,7 +1778,7 @@ server <- function(input, output, session) {
     })
   
   
-  output$doc_vecs_info<-renderText("Not trained yet")
+  #output$doc_vecs_info<-renderText("Not trained yet")
   
   #document vectors
   model_docvec=reactiveValues(doc_vectors = NULL)
@@ -1732,9 +1792,17 @@ server <- function(input, output, session) {
     
     
     model_trained_temp=switch(input$doc_vec_model,"lsa_model"="LSA","star_model"="Starspace","ft_model"='FastText',"dan_model"="Deep Averaging Networks","CNN"="Convolutional Neural Network (CNN)","RNN"="Recurrent Neural Network (RNN)","LSTM"="Long Short Term Memory (LSTM)")
-    output$doc_vecs_info<-renderText(paste("Type:",model_trained_temp,", Number of dimensions:",ncol(model_docvec$doc_vectors)))
-    
-    
+    output$doc_vecs_info<-renderInfoBox(
+      {
+        infoBox("Type:",model_trained_temp)
+      }
+      )
+    output$doc_vecs_info_dims<-renderInfoBox(
+      {
+        infoBox("No dimensions",ncol(model_docvec$doc_vectors))
+        
+      }
+    )
     removeModal()
     
     output$proc_time_DV <- renderText({return(paste("Processing time in seconds to construct Document Vectors:",round((end_time-start_time),3)))})
