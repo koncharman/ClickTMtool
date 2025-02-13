@@ -68,7 +68,10 @@
     
     td_all_temp=t(f_clust$U*col_sums)
     td_all_temp=td_all_temp/rowSums(td_all_temp)
-    td_all_temp=mean(as.vector(JSD(td_all_temp)))
+    td_all_temp=JSD(td_all_temp)
+    td_all_temp=mean(as.vector(td_all_temp[row(td_all_temp)>col(td_all_temp)]))
+    
+    
     div_list_all[i-1]=td_all_temp
     
     print(paste(i,fc,td_temp,td_all_temp))
@@ -219,7 +222,10 @@
       
       td_all_temp=t(m_clust$z*col_sums)
       td_all_temp=td_all_temp/rowSums(td_all_temp)
-      td_all_temp=mean(as.vector(JSD(td_all_temp)))
+      td_all_temp=JSD(td_all_temp)
+      td_all_temp=mean(as.vector(td_all_temp[row(td_all_temp)>col(td_all_temp)]))
+      
+      
       div_list_all[i-1]=td_all_temp
       
       print(paste(i,fc,td_temp,td_all_temp))

@@ -3,7 +3,13 @@
   
     if(dim_red_options=="umap_red"){
       library(uwot)
-      umap_tcm_ii=umap(X = word_vectors,verbose = TRUE,n_neighbors =nn,metric = umap_metric,n_components = no_umap_dims,local_connectivity =1,spread = spr,min_dist = md)# ,n_epochs = 10000 , 5 or 10 neighbors 
+      if(umap_metric=="dist"){
+        umap_tcm_ii=umap(X = as.dist(word_vectors),verbose = TRUE,n_neighbors =nn,n_components = no_umap_dims,local_connectivity =1,spread = spr,min_dist = md)# ,n_epochs = 10000 , 5 or 10 neighbors 
+        
+      }else{
+        umap_tcm_ii=umap(X = word_vectors,verbose = TRUE,n_neighbors =nn,metric = umap_metric,n_components = no_umap_dims,local_connectivity =1,spread = spr,min_dist = md)# ,n_epochs = 10000 , 5 or 10 neighbors 
+        
+      }
       rownames(umap_tcm_ii)=tSparse_colnames
       # 
     }else if(dim_red_options=="pca_red"){

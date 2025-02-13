@@ -30,7 +30,8 @@
     
     gc()
     
-    td_all=mean(as.vector(JSD(exp(model@beta))))
+    td_all=JSD(exp(model@beta))
+    td_all=mean(as.vector(td_all[row(td_all)>col(td_all)]))
     
     temp_t=colSums(doc_mem[split2,]*row_s[split2==T])
     cs_order_mem=order(temp_t,decreasing = T)
@@ -54,7 +55,8 @@
     
     gc()
     
-    td_all=mean(as.vector(JSD(exp(model@beta))))
+    td_all=JSD(exp(model@beta))
+    td_all=mean(as.vector(td_all[row(td_all)>col(td_all)]))
     
     temp_t=colSums(doc_mem[split2,]*row_s[split2==T])
     cs_order_mem=order(temp_t,decreasing = T)
@@ -96,7 +98,8 @@
     
     gc()
     
-    td_all=mean(as.vector(JSD(exp(model$beta$logbeta[[1]]))))
+    td_all=JSD(exp(model$beta$logbeta[[1]]))
+    td_all=mean(as.vector(td_all[row(td_all)>col(td_all)]))
     
     temp_t=colSums(doc_mem[split2,]*row_s[split2==T])
     cs_order_mem=order(temp_t,decreasing = T)
@@ -154,7 +157,8 @@
       
       td=length(unique(as.vector(ldaOut.terms)))/(no_top_terms*no_topics)
       
-      td_all=mean(as.vector(JSD(phi)))
+      td_all=JSD(phi)
+      td_all=mean(as.vector(td_all[row(td_all)>col(td_all)]))
       
       temp_t=colSums(doc_mem[split2,]*row_s[split2==T])
       cs_order_mem=order(temp_t,decreasing = T)
@@ -202,7 +206,8 @@
                  
                  td=length(unique(as.vector(ldaOut.terms)))/(no_top_terms*no_topics)
                  
-                 td_all=mean(as.vector(JSD(phi)))
+                 td_all=JSD(phi)
+                 td_all=mean(as.vector(td_all[row(td_all)>col(td_all)]))
                  
                  temp_t=colSums(doc_mem[split2,]*row_s[split2==T])
                  cs_order_mem=order(temp_t,decreasing = T)
@@ -251,7 +256,8 @@
                  
                  td=length(unique(as.vector(ldaOut.terms)))/(no_top_terms*no_topics)
                  
-                 td_all=mean(as.vector(JSD(phi)))
+                 td_all=JSD(phi)
+                 td_all=mean(as.vector(td_all[row(td_all)>col(td_all)]))
                  
                  
                  temp_t=colSums(doc_mem[split2,]*row_s[split2==T])
@@ -326,7 +332,8 @@
     
     td=length(unique(as.vector(ldaOut.terms)))/(no_top_terms*no_topics)
     
-    td_all=mean(as.vector(JSD(model$phi)))
+    td_all=JSD(model$phi)
+    td_all=mean(as.vector(td_all[row(td_all)>col(td_all)]))
     
     
     temp_t=colSums(doc_mem[split2,]*row_s[split2==T])
@@ -337,10 +344,10 @@
     
   }else if (type=="NMF"){
     library(RcppML)
-    
+
     model=nmf(A = item_list_text$dtm[split2==T,],k=no_topics)
     
-    
+
     ldaOut.terms=matrix(ncol = no_topics,nrow=no_top_terms)
     
     
@@ -377,9 +384,8 @@
     td=length(unique(as.vector(ldaOut.terms)))/(no_top_terms*no_topics)
     
     gc()
-    
-    td_all=mean(as.vector(JSD(model$h)))
-    
+    td_all=JSD(model$h)
+    td_all=mean(as.vector(td_all[row(td_all)>col(td_all)]))
    
     
     return(list("phi"=model$h[cs_order_mem,],'model'=model,'keyword_table'=ldaOut.terms[,cs_order_mem],'coherence_npmi'=fc,"document_memberships"=doc_mem[,cs_order_mem],'topic_vis'=topic_vis,"topic_divergence"=td,"topic_divergence_all"=td_all))

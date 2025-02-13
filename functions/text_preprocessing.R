@@ -10,18 +10,24 @@
   corpus = Corpus(VectorSource(all_set_text))
   
   if(basic_preprocess==T){
-    corpus = Corpus(VectorSource(txt_clean_word2vec(x = all_set_text)))
+    
+    corpus = tm_map(corpus, tolower)
+    
+    corpus = tm_map(corpus, function(x)str_replace_all(x,"[:punct:]", " ")) 
+    
     }else{
  
+      
   library(textclean)
   
   library(tm)
-  corpus = Corpus(VectorSource(all_set_text))
   if(do_lower_case==T) corpus = tm_map(corpus, tolower)
-  if(do_rmv_mention==T)  corpus = tm_map(corpus, function(x)str_replace_all(string = x,pattern = "@\\w+", replacement = " ") )#"\\@.*? |\\@.*?[:punct:]"
+
+  if(do_rmv_mention==T)  corpus = tm_map(corpus, function(x)str_replace_all(string = x,pattern = "@\\w+", replacement = "") )#"\\@.*? |\\@.*?[:punct:]"
   if(do_rpl_number==T)  corpus = tm_map(corpus, replace_number)
   if(do_rpl_hash==T)  corpus = tm_map(corpus, replace_hash)
   if(do_rpl_html==T)  corpus = tm_map(corpus, replace_html)
+  
   corpus = tm_map(corpus, replace_contraction)
   corpus = tm_map(corpus, replace_word_elongation)
   
@@ -30,14 +36,16 @@
   if(do_rpl_punct==T) corpus = tm_map(corpus, function(x)str_replace_all(x,"[:punct:]", " "))
   if(do_rpl_digit==T) corpus = tm_map(corpus, function(x)str_replace_all(x,"[:digit:]", " "))
   
+
+  
+  }
+  
   #corpus = tm_map(corpus, str_trim)
   corpus = tm_map(corpus, str_squish)
   
   
   
-  }
-  
-  if(do_rmv_stop==T) corpus = tm_map(corpus, removeWords,  c("the",stopwords("english")))#Glove # see stopwords("smart")
+  if(do_rmv_stop==T) corpus = tm_map(corpus, removeWords,  c("the",stopwords("smart")))#Glove # see stopwords("smart")"english"
   
   
   if (do_stem==T) corpus = tm_map(corpus, stemDocument) 
@@ -74,12 +82,22 @@
     frequencies=DocumentTermMatrix(corpus[split2==T], control = list(bounds = list(global = c(min_doc, max_doc))))
     #frequencies=DocumentTermMatrix(corpus, control = list(bounds = list(global = c(min_doc, max_doc))))
     
-    
-    
-    
     terms_chosen=frequencies$dimnames$Terms
-   
+    
+    
+    zero_freq_rows <- rowSums(as.matrix(frequencies)) == 0
+    
+    if (any(zero_freq_rows)){
+      
+      empty_docs <- corpus[split2 == T][zero_freq_rows]
+      empty_dtm <- DocumentTermMatrix(empty_docs)
+      terms_chosen=c(terms_chosen,empty_dtm$dimnames$Terms)
+      
+    }
+    
     item_ret$old_words=terms_chosen
+    
+   
     
     
     frequencies=DocumentTermMatrix(corpus)
@@ -92,18 +110,19 @@
     
     colnames(tSparse)=make.names(colnames(tSparse))
     
-    r_sums=rowSums(tSparse)
     
-    col_s=colSums(tSparse)
-    col_s_max=which(col_s==max(col_s))
     
-    r_sums_0=which(r_sums==0)
+    #r_sums=rowSums(tSparse)
+    #col_s=colSums(tSparse)
+    #col_s_max=which(col_s==max(col_s))
     
-    if(length(r_sums_0)>0){
-      item_ret$text[r_sums_0]=unlist(lapply(item_ret$text[r_sums_0],function(x)paste(x,names(col_s_max))))
-      tSparse[r_sums_0,col_s_max]=1
-      r_sums[r_sums_0]=1
-    } 
+    #r_sums_0=which(r_sums==0)
+    
+    #if(length(r_sums_0)>0){
+      #item_ret$text[r_sums_0]=unlist(lapply(item_ret$text[r_sums_0],function(x)paste(x,names(col_s_max))))
+      #tSparse[r_sums_0,col_s_max]=1
+      #r_sums[r_sums_0]=1
+    #} 
     
     
     if(term_weight_fun=="tfidf_chosen"){
@@ -129,7 +148,8 @@
   
   
   
-  
+  zero_freq_rows <- which(rowSums(item_ret[['dtm']]) == 0)
+  item_ret$zero_rows=zero_freq_rows
   
   return(item_ret)
   
