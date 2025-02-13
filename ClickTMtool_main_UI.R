@@ -306,9 +306,9 @@ ui <- fluidPage(
                            
                            #Text preprocessing options
                            HTML(paste("<h3 style='font-weight: bold'>","Preprocessing Options","</h3>",sep="")),
-                           checkboxInput(inputId = "bp",label = "Basic preprocess",value = F),
-                           checkboxInput(inputId = "do_stem",label = "Do stemming",value = F),
-                           checkboxInput(label = "Remove stopwords",inputId = "do_rmv_stop",value = F),
+                           checkboxInput(inputId = "bp",label = "Basic preprocess",value = T),
+                           checkboxInput(inputId = "do_stem",label = "Do stemming",value = T),
+                           checkboxInput(label = "Remove stopwords",inputId = "do_rmv_stop",value = T),
                            
                            checkboxInput(inputId = "ngrams_clause",label = "N-grams",value = F),
                            conditionalPanel(condition = "input.ngrams_clause == true",fluidRow(column(width = 4,offset = 0,numericInput(inputId = "min_ngrams",label = "min ngrams",value = 2,min=1,max=6)),column(width = 4,offset = 0,numericInput(inputId = "max_ngrams",label = "max ngrams",value = 4,min=2,max=6)))),
@@ -1456,10 +1456,24 @@ server <- function(input, output, session) {
     
     
     
-    item_list_text$text=temp$text
-    item_list_text$dtm=temp$dtm
+
     item_list_text$tcm=temp$tcm
     item_list_text$old_words=temp$old_words
+    
+    if(length(temp$zero_rows)>0){
+      
+      dataset_chosen$main_matrix=dataset_chosen$main_matrix[-temp$zero_rows,]
+      dataset_chosen$split2=dataset_chosen$split2[-temp$zero_rows]
+      item_list_text$text=temp$text[-temp$zero_rows]
+      item_list_text$dtm=temp$dtm[-temp$zero_rows,]
+      
+    }else{
+      
+      item_list_text$text=temp$text
+      item_list_text$dtm=temp$dtm
+      
+    }
+    
     
     
     output$no_words_info_box<-renderInfoBox({
