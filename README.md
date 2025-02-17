@@ -35,7 +35,7 @@ setwd("D:/ClickTMtool/ClickTMtool-main/ClickTMtool-main/")  #ClickTMtool directo
 
 library(shiny)
 
-runApp("LaborTMtool\_main\_UI.R")
+runApp("ClickTMtool\_main\_UI_2.R")
 
 
 
