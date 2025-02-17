@@ -529,8 +529,9 @@ ui <- fluidPage(
                         numericInput("glob_word_pag",label = "Page",value = 1,min = 1,step = 1),
                         
                         br(),br(),
-                        dataTableOutput("glob_word_frequencies_table")
-                     
+                        dataTableOutput("glob_word_frequencies_table"),
+                        
+                   
                       ),
                       br(),
                       tags$h1("Word frequencies per group"),
@@ -569,21 +570,26 @@ ui <- fluidPage(
                
              ),
              tabPanel("Key features",
+                      tags$h1("Find key features (Mutual Information)"),
+                      wellPanel( 
+                                 dataTableOutput("glob_word_mutual_info")
+                      ),
+                      
                       tags$h1("Find key features per group"),
                       wellPanel(id="wellpanel",
                         selectizeInput(inputId = "select_group_key_feat","Select group",choices=NULL),
                         actionButton("start_key_feat","Confirm Settings")
                       ),
                       br(),
-                      tags$h1("Feature evaluation (Mutual Information and Spearman Correlation)"),
+                      tags$h2("Feature evaluation (Mutual Information and Spearman Correlation)"),
                       wellPanel(
                         dataTableOutput("feat_info_one_output")
                       ),
                       br(),
-                      tags$h1("Unanticipated features"),
+                      tags$h2("Unanticipated features"),
                       
                       wellPanel(
-                        tags$h2("Word percentage in group versus outside the group"),
+                        tags$h3("Word percentage in group versus outside the group"),
                         dataTableOutput("key_feat_one_output"),
 
                       )
@@ -1896,6 +1902,32 @@ server <- function(input, output, session) {
       theme_solarized_2(light = T,base_size = 15)
   })
   
+  output$glob_word_mutual_info<-renderDT({
+    
+    dtm_dich=dichotomize(X = item_list_text$dtm,.Machine$double.xmin)
+
+    res_feat_eval=MIM(X = as.data.frame(dtm_dich),Y = as.factor(dataset_chosen$main_matrix$new_group),k = ncol(dtm_dich))
+    
+    res_feat_eval=data.frame("Feature"=names(res_feat_eval$score),"Score"=unlist(res_feat_eval$score))
+    rownames(res_feat_eval)=NULL
+    
+    datatable(
+      res_feat_eval,
+      extensions = c("Buttons", "Scroller"),
+      options = list(
+        dom = 'Bfrtip',
+        buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+        scrollX = TRUE,
+        scrollY = "400px",
+        scroller = TRUE,
+        pageLength = 10,
+        lengthMenu = list(c(5, 10, 20, 50), c('5 rows', '10 rows', '20 rows', '50 rows')),
+        class = "display compact stripe hover"
+      )
+    )
+  })
+  
+  
   output$group_word_frequencies_table<-renderDataTable({
     
     df_now=data.frame("Word"=rownames(item_list_text$tcm_list[[input$select_group_word_freq]]),"Frequency"=diag(item_list_text$tcm_list[[input$select_group_word_freq]]))
@@ -1978,7 +2010,7 @@ server <- function(input, output, session) {
       plot_now <- ggplotly(
         ggplot(data = new_coords, aes(x = x, y = y, size = size, color = label)) +
           geom_point(alpha=0.6) + # Use filled points with a gradient fill        
-          geom_text(aes(label = label), size = 2,color="black",check_overlap = T) +
+          geom_text(aes(label = label), size = 3,color="black",check_overlap = T) +
           #geom_text_repel(aes(label = label), size = 4, color = "black") +  # Repels overlapping labels
           scale_size_continuous(range = c(5, 15)) +
           theme(legend.position = "none")+ # Hides all legends
@@ -2073,6 +2105,7 @@ server <- function(input, output, session) {
     
     outputs_one$main=data.frame("Word"=rownames(outputs_two$main),
                                 "In_all"=diag(item_list_text$tcm),"In_group"=diag(tcm_now_filt)
+                                #"In_all"=round(diag(item_list_text$tcm)/no_documents,5),"In_group"=round(diag(tcm_now_filt)/no_in,5)
                                 ,"Score"=diag(outputs_two$main)
                                 ,"Score_filtered"=round((diag(outputs_two$main)-1)*(diag(item_list_text$tcm)/no_documents),4)
                                 #,"No_all"=no_documents,"No_in"=no_in
@@ -2082,8 +2115,8 @@ server <- function(input, output, session) {
 
     
     rownames(outputs_one$main)=NULL
-    #outputs_one$main=outputs_one$main[order(outputs_one$main$Score,outputs_one$main$In_all,decreasing=T),]
-    outputs_one$main=outputs_one$main[order(outputs_one$main$Score_filtered,outputs_one$main$In_all,decreasing=T),]
+    outputs_one$main=outputs_one$main[order(outputs_one$main$Score,outputs_one$main$In_all,decreasing=T),]
+    #outputs_one$main=outputs_one$main[order(outputs_one$main$Score_filtered,outputs_one$main$In_all,decreasing=T),]
     
     
     output$key_feat_one_output<-renderDT({
