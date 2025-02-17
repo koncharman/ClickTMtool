@@ -1,7 +1,7 @@
 
 ## **ClickTMtool and Rstudio**
 ### Package installations
-Next download the ClickTMtool from the github repository. In this guide we unzipped the folder into the directory D:/ClickTMtool. Now open Rstudio and type the following scripts.
+Download the ClickTMtool from the github repository. In this guide we unzipped the folder into the directory D:/ClickTMtool. Now open Rstudio and type the following scripts.
 
 #Path of ClickTMtool in your machine
 
