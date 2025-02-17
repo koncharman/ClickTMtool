@@ -1,4 +1,43 @@
 
+## **ClickTMtool and Rstudio**
+### Package installations
+Next download the ClickTMtool from the github repository. In this guide we unzipped the folder into the directory D:/ClickTMtool. Now open Rstudio and type the following scripts.
+
+#Path of ClickTMtool in your machine
+
+setwd("D:/ClickTMtool/ClickTMtool-main/ClickTMtool-main/") 
+
+install.packages("readxl")
+
+library(readxl)
+
+packages\_to\_install <- read\_xlsx(path = "ClickTMtool\_all\_required\_packages.xlsx")
+
+install.packages(packages\_to\_install$new\_values)
+
+#maybe try installing in batches for example install.packages(packages\_to\_install$new\_values[1:10])
+
+install.packages(packages\_to\_install$new\_values[11:20]) #etc.
+
+### To run the project.
+#If you used option 1 for python, then you should define the python path.
+
+reticulate::use\_python("D:/Python/python.exe",required = T)
+
+setwd("D:/ClickTMtool/ClickTMtool-main/ClickTMtool-main/")  #ClickTMtool directory
+
+library(shiny)
+
+runApp("ClickTMtool\_main\_UI.R")
+
+### Run the second project with exploratory analytics per group
+setwd("D:/ClickTMtool/ClickTMtool-main/ClickTMtool-main/")  #ClickTMtool directory
+
+library(shiny)
+
+runApp("LaborTMtool\_main\_UI.R")
+
+
 
 # Installation Instructions
 ## **Python installation**
@@ -63,44 +102,6 @@ Set the JAVA environment variable value depending on the file installation of ja
 Variable Name: JAVA\_HOME Variable Value:'D:\Java\jdk-19\'
 
 Where the directory is the same of the JDK installation.
-## **ClickTMtool and Rstudio**
-### Package installations
-Next download the ClickTMtool from the github repository. In this guide we unzipped the folder into the directory D:/ClickTMtool. Now open Rstudio and type the following scripts.
-
-#Path of ClickTMtool in your machine
-
-setwd("D:/ClickTMtool/ClickTMtool-main/ClickTMtool-main/") 
-
-install.packages("readxl")
-
-library(readxl)
-
-packages\_to\_install <- read\_xlsx(path = "ClickTMtool\_all\_required\_packages.xlsx")
-
-install.packages(packages\_to\_install$new\_values)
-
-#maybe try installing in batches for example install.packages(packages\_to\_install$new\_values[1:10])
-
-install.packages(packages\_to\_install$new\_values[11:20]) #etc.
-
-### To run the project.
-#If you used option 1 for python, then you should define the python path.
-
-reticulate::use\_python("D:/Python/python.exe",required = T)
-
-setwd("D:/ClickTMtool/ClickTMtool-main/ClickTMtool-main/")  #ClickTMtool directory
-
-library(shiny)
-
-runApp("ClickTMtool\_main\_UI.R")
-
-### Run the second project with exploratory analytics per group
-setwd("D:/ClickTMtool/ClickTMtool-main/ClickTMtool-main/")  #ClickTMtool directory
-
-library(shiny)
-
-runApp("LaborTMtool\_main\_UI.R")
-
 
 # Quick tour
 In this case study, we used the BBC News dataset (Greene and Cunningham, 2006) that constitutes a benchmark dataset in previous studies for validation purposes on topic classification tasks. This dataset contains a total of 2225 articles (*bbc dataset*), where each article is labeled under one of the following five classes or categories: business, entertainment, politics, sport and tech. This dataset is associated with two main tasks that both match the utilities of *ClickTMtool*. The first task is to identify the primary topics by providing coherent and reasonable results while the second one is to build machine learning models to predict the classes of new records. We initially create a training and a testing dataset using the random split option included in the *File Tab*. Also, the process of label encoding and the frequency of the labels across the dataset are shown in the following figures.
