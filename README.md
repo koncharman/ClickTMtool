@@ -19,7 +19,7 @@ install.packages(packages\_to\_install$new\_values)
 
 install.packages(packages\_to\_install$new\_values[11:20]) #etc.
 
-### To run the project (Requires python and Java SDK).
+### To run the project (Requires python and Java JDK).
 #If you used option 1 for python, then you should define the python path.
 
 reticulate::use\_python("D:/Python/python.exe",required = T)
