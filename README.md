@@ -150,5 +150,12 @@ library(shiny)
 
 runApp("ClickTMtool\_main\_UI.R")
 
+### Run the second project with exploratory analytics per group
+setwd("D:/ClickTMtool/ClickTMtool-main/ClickTMtool-main/")  #ClickTMtool directory
+
+library(shiny)
+
+runApp("LaborTMtool\_main\_UI.R")
+
 
 
