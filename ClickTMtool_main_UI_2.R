@@ -1053,7 +1053,7 @@ server <- function(input, output, session) {
   
   
   output$text_groups_not_done<-renderInfoBox({
-    infoBox(title = "Groups remaining:",value = paste(topic_models_list$not_done,collapse = ", "),subtitle = "all_data refers to the dataset as a whole",icon = icon("book"))
+    infoBox(title = "Groups remaining:",value = paste(topic_models_list$not_done,collapse = " ; "),subtitle = "all_data refers to the dataset as a whole",icon = icon("book"))
 
   }  )
   
