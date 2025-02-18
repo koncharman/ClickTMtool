@@ -340,7 +340,7 @@ ui <- fluidPage(
                         tags$h2(tags$b("Barplot of Word frequencies")),
                         br(),
                         
-                        numericInput(inputId = "word_bar_plot_no_items",label = "Number of Words",value = 20,min = 2),
+                        numericInput(inputId = "word_bar_plot_no_items",label = "Page",value = 1,min = 1),
                         br(),
                         plotlyOutput(outputId = "word_barplot",height = 1000),
                         br(),
@@ -1188,20 +1188,31 @@ server <- function(input, output, session) {
     
   })
   
-  
+
+    
+
+
   output$word_barplot<-renderPlotly({
     
+    page_now=input$word_bar_plot_no_items
     col_sums_all=diag(item_list_text$tcm)
     order_csa=order(col_sums_all,decreasing = T)
     
-    DF=data.frame("Words"=names(col_sums_all[order_csa[1:input$word_bar_plot_no_items]]),"Occurences"=col_sums_all[order_csa[1:input$word_bar_plot_no_items]])
+    selected_idx=c((20*(page_now-1)+1):(20*page_now))
+    
+   
+    
+    DF=data.frame("Words"=names(col_sums_all)[order_csa[selected_idx]],"Occurences"=as.numeric(col_sums_all[order_csa[selected_idx]]))
+    DF$Words=reorder(DF$Words, DF$Occurences)
+    
+
     p=
       ggplotly(
         ggplot(DF, aes(Words, Occurences)) +               
           theme(text = element_text(size = 20))+
           #theme(axis.text.x = element_text(angle = 90))+
           geom_bar(stat = "identity", fill = "lightblue", color = "blue")+
-          scale_x_discrete(limits = names(col_sums_all[order_csa[1:input$word_bar_plot_no_items]]))+
+          #scale_x_discrete(limits = names(col_sums_all[order_csa[1:input$word_bar_plot_no_items]]))+
           ggtitle("Keyword - Document Occurence (Train Set)")+
           ylab("Number of documents")+
           theme_solarized_2(light = T)+
@@ -1212,6 +1223,7 @@ server <- function(input, output, session) {
     
   })
   
+
   
   word_cloud_shape_react=reactive(input$word_cloud_shape)
   
