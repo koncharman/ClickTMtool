@@ -620,16 +620,17 @@ ui <- fluidPage(
                      tags$h2("Topic size"),
                      br(),
                      dataTableOutput("topic_analysis_topic_size"),
-                     tags$h2("Top words per topic (Table)"),
-                     br(),
-                     dataTableOutput("topic_analysis_inspect_top_words"),#,label="Inspect top words per topic"
-                     br(),
+                    
                      tags$h2("Top words per topic (Plot)"),
                      selectizeInput(inputId = "topic_analysis_inspect_sel_topic",label="Select topic to inspect",choices=NULL),
                      br(),
                      plotlyOutput(outputId = "topic_analysis_inspect_top_words_topic"),
-                     numericInput(inputId = "topic_analysis_inspect_top_words_page",label = "Page",min = 1,max = Inf,value = 1)
+                     numericInput(inputId = "topic_analysis_inspect_top_words_page",label = "Page",min = 1,max = Inf,value = 1),
 
+                     br(),
+                     tags$h2("Top words per topic (Table)"),
+                     br(),
+                     dataTableOutput("topic_analysis_inspect_top_words"),#,label="Inspect top words per topic"
                      
            )
              ),
