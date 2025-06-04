@@ -143,13 +143,14 @@
     rownames(item_ret[['tcm']])=colnames(item_ret[['dtm']])
     colnames(item_ret[['tcm']])=colnames(item_ret[['dtm']])
     
+    zero_freq_rows <- which(rowSums(item_ret[['dtm']]) == 0)
+    item_ret$zero_rows=zero_freq_rows
   
   }
   
   
   
-  zero_freq_rows <- which(rowSums(item_ret[['dtm']]) == 0)
-  item_ret$zero_rows=zero_freq_rows
+
   
   return(item_ret)
   
